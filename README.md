@@ -2,7 +2,8 @@
 
 A supplier invoice comes in as a PDF or a photo. One model call reads it into structured fields.
 Plain code then checks those fields against a vendor list and a list of purchase orders, and
-decides. Every check it makes, and every reason for the decision, is stored and shown.
+decides. One judgement inside that is not plain code: when an invoice line's wording is too far
+from the purchase order's to be sure, a second model is asked which order line it bills. Every check it makes, and every reason for the decision, is stored and shown.
 
 This file is the project's front page and a full description of how it works. Everything in it
 is taken from the code in this folder. When a planning document says something different, this
@@ -30,8 +31,11 @@ file follows the code.
 
 An accounts payable (AP) team must decide which supplier invoices to pay, and this project makes
 that first decision. You upload an invoice, and a model reads it once into a fixed set of fields.
-A nine-stage pipeline of plain code then checks the arithmetic, finds the approved vendor who sent
-it, finds the purchase order (PO) it bills against, compares the amounts and looks for duplicates.
+A ten-stage pipeline then checks the arithmetic, finds the approved vendor who sent it, finds the
+purchase order (PO) it bills against line by line, compares the amounts and looks for duplicates.
+Eight of those ten stages are plain code. Two use a model, and for different jobs: stage 1 reads
+the document, and stage 6 asks an evaluation model which PO line a reworded invoice line bills when
+the text alone cannot settle it, holding the invoice when the answer is not confident.
 Each stage produces **findings**: short coded sentences such as "the bank account differs from the
 vendor master". The outcome is computed from those findings, and you can watch every stage live in
 the browser.
@@ -96,10 +100,10 @@ invoice becomes the original that a later duplicate is caught against. The full 
 
 ### Processing a new invoice without a key
 
-Without an API key only the fourteen sample PDFs can be read from a file (recorded mode recognises a
+Without an API key only the 33 sample PDFs can be read from a file (recorded mode recognises a
 document by its exact bytes). A new invoice can still be processed by typing it in: `POST /v1/runs/manual` takes the same
 fields the model would fill, as text ([section 8](#8-http-api)). The typed values go through the
-same conversion as a model reading and then through stages 2 to 8 unchanged; no rule is relaxed.
+same conversion as a model reading and then through stages 2 to 9 unchanged; no rule is relaxed.
 New master data can be added the same way: `POST /v1/vendors` adds a vendor and `POST /v1/orders`
 raises a PO for it. So the whole path can be exercised without a key: create a vendor, raise a PO
 for it, then enter an invoice that names the vendor's tax ID and the PO number.
@@ -137,8 +141,10 @@ or, to read documents with OpenAI:
 OPENAI_API_KEY=sk-...
 ```
 
-With both keys set Anthropic is used, unless `LLM_PROVIDER=openai` is set in `llm.env`. The OpenAI
-model is `LLM_OPENAI_MODEL` (`gpt-6-luna`); the effort setting applies to both providers.
+With both keys set Anthropic is used, unless `LLM_PROVIDER=openai` is set in `llm.env`. **It is
+set**, so a live run reads documents with OpenAI (`LLM_OPENAI_MODEL`, `gpt-6-luna`) unless that
+line is changed; `LLM_MODEL` (`claude-opus-5-5`) then applies only if the provider is switched
+back. The effort setting applies to both providers.
 
 The setting `LLM_MODE` in `backend/app/config/llm.env` is `auto` by default: live when a key is
 present, recorded otherwise. It can be set to `live` or `recorded` to force a mode. The mode in
@@ -191,6 +197,7 @@ imports are still limited to FastAPI, Pydantic and Starlette.
 |---|---|---|
 | `anthropic` | `adapters/llm_adp.py` | `AnthropicAdapterClass.extract()` |
 | `openai` | `adapters/openai_adp.py` | `OpenAIAdapterClass.extract()` |
+| `typesafe_sdk` | `adapters/typesafe_adp.py` | `TypeSafeAdapterClass.evaluate()` (Jev) |
 | `pypdf` | `adapters/pdf_adp.py` | `PdfAdapterClass.inspect()` |
 | `rapidfuzz` | `adapters/match_adp.py` | `MatchAdapterClass.ratio()` |
 | SQLAlchemy engine and sessions | `adapters/db_adp.py` | `DBAdapterClass.run()`, `create_tables()`, `close()` |
@@ -204,9 +211,10 @@ The reasons:
 
 - **One place to change.** Retries and error wording for the model API live in one file.
   Moving to another PDF library or another model provider changes one file.
-- **No network without a key.** In recorded mode no model adapter is built at all (`AdapterRegistry.LLM`
-  is `None`). The extraction entity replays the stored reading of a sample whose PDF has the same
-  bytes, so tests and the demo run without a network.
+- **No network without a key.** In recorded mode neither model adapter is built (`AdapterRegistry.LLM`
+  and `.Jev` are both `None`). The extraction entity replays the stored reading of a sample whose PDF
+  has the same bytes, and stage 6 replays Jev's answers from `data/jev_recordings.json`, keyed by a
+  digest of the request, so tests and the demo run without a network.
 - **Entities stay testable.** `RulesEntityClass` does no input or output at all. Its tests build
   values and call methods directly.
 - **The rule is checked by a script**, so it cannot quietly erode.
@@ -222,8 +230,10 @@ uvicorn starts the app
    v
 AdapterRegistry()                                     adapters/__init__.py
    |  DB    = DBAdapterClass(var/ps1.sqlite3)          SQLite in WAL mode, busy timeout 5000 ms
-   |  LLM   = AnthropicAdapterClass(...)   if the resolved mode is "live"
-   |          None                         otherwise (recorded mode reads from the samples table)
+   |  LLM   = OpenAIAdapterClass(...) or AnthropicAdapterClass(...)  if the resolved mode is "live"
+   |          None                       otherwise (recorded mode reads from the samples table)
+   |  Jev   = TypeSafeAdapterClass(...)  if TYPESAFE_API_KEY is set
+   |          None                       otherwise (recorded answers replay from jev_recordings.json)
    |  Match = MatchAdapterClass()
    |  Pdf   = PdfAdapterClass()
    |  Store = StoreAdapterClass(var/uploads, data)
@@ -300,6 +310,7 @@ exact text. SQLite never turns it into a float.
 | `config/__init__.py` | Builds `ENVConfigs`, the single settings object. |
 | `config/env_config.py` | Three pydantic-settings groups: `Llm`, `Rules`, `Storage`. Relative paths resolve against `backend/`. `_LlmConfigClass.active` resolves the mode. |
 | `config/llm.env` | `LLM_MODE`, `LLM_MODEL`, `LLM_EFFORT`, `LLM_CACHE_TTL`, `LLM_MAX_TOKENS`, `LLM_REPLAY_DELAY`. |
+| `config/jev.env` | `JEV_MODE`, `JEV_MODEL`, `JEV_TIMEOUT`, `JEV_SELECT_ABOVE`, `JEV_REJECT_AT_OR_BELOW`, `JEV_MAX_CANDIDATES`, `JEV_RECORD`, `JEV_RECORDINGS`. |
 | `config/rules.env` | `RULES_TOLERANCE_PCT`, `RULES_TOLERANCE_FLOORS`, `RULES_PASS_SCORE`, `RULES_VENDOR_WEIGHTS`, `RULES_LINE_SURE_ABOVE`, `RULES_LINE_CANDIDATE_AT`, `RULES_PO_POOL_MAX`, `RULES_MAX_PAGES`, `RULES_MAX_BYTES`. |
 | `config/storage.env` | `STORAGE_DB_PATH`, `STORAGE_UPLOAD_DIR`, `STORAGE_DATA_DIR`, `STORAGE_CORS_ORIGIN`. |
 | `adapters/__init__.py` | `AdapterTypes` (types the entities may use, `LLM` among them), `AdapterRegistry` (`LLM` is `None` in recorded mode). |
@@ -308,6 +319,7 @@ exact text. SQLite never turns it into a float.
 | `adapters/db_adp.py` | `Base` for every table, the `DecimalText` column type, `DBAdapterClass` (engine, WAL, `run(work)` in a thread, `create_tables`, `close`). |
 | `adapters/llm_adp.py` | `AnthropicAdapterClass`: the one live model call, with caching, one retry and error mapping. |
 | `adapters/openai_adp.py` | `OpenAIAdapterClass`: the same call through OpenAI when that provider is chosen, with the prompt ordered for caching. |
+| `adapters/typesafe_adp.py` | `TypeSafeAdapterClass.evaluate()`: one Jev request of named yes/no questions, returning a probability each. |
 | `adapters/match_adp.py` | `MatchAdapterClass.ratio()`: rapidfuzz token-set ratio, 0 to 100. |
 | `adapters/pdf_adp.py` | `PdfAdapterClass.inspect()`: identifies PDF, PNG or JPEG by its first bytes; for a PDF reports encryption, page count and text layer. |
 | `adapters/store_adp.py` | `StoreAdapterClass`: saves uploads, reads seed files (only while seeding), deletes uploads on reset. |
@@ -317,7 +329,7 @@ exact text. SQLite never turns it into a float.
 | `entities/_types/amount_types.py` | `AmountTypes`: amount formatting and price arithmetic shared by the validation, amount and decision stages. |
 | `entities/_types/master_types.py` | `MasterTypes.MasterError`: why a vendor or PO cannot be created, with a reason (`invalid`, `unknown`, `conflict`) the services turn into 422, 404 or 409. |
 | `entities/_types/extraction_types.py` | `InvoiceRead` (the model's all-text wire schema) and `InvoiceExtraction` (the typed form), with their parts. |
-| `entities/_types/finding_types.py` | The 35 finding codes, the three severities and the `Finding` model. |
+| `entities/_types/finding_types.py` | The 45 finding codes (42 of them still raised), the three severities and the `Finding` model. |
 | `entities/_types/stage_types.py` | Every stage result model, run and step states, the run modes (`live`, `recorded`, `manual`), `StepEvent`, `RunClosed`, `RunClosing`, `OrderSnapshot`. |
 | `entities/prompt_ent.py` | `PromptEntityClass`: loads the prompt pair once and fills the context template. |
 | `entities/prompts/system-extract.md` | The system prompt: the reader's job, what every field means, rules R1 to R7, two worked examples. |
@@ -332,8 +344,8 @@ exact text. SQLite never turns it into a float.
 | `entities/stages/vendor_stage.py` | Stage 3 `VendorStageClass`: the vendor ladder (tax ID, account, name), suspension and tax-ID vetoes. |
 | `entities/stages/bank_stage.py` | Stage 4 `BankStageClass`: payee account (and bank code) vs the vendor master. |
 | `entities/stages/duplicate_stage.py` | Stage 5 `DuplicateStageClass`: exact duplicate or suspected re-send against approved invoices. |
-| `entities/stages/po_stage.py` | Stage 6 `PoStageClass`: printed PO(s), inference from open POs, refusals; hands vague matches to Jev. |
-| `entities/stages/po_jev.py` | Stage 6, part 2 `PoJevClass`: Jev's yes/no per open PO, the selection bands, recordings. |
+| `entities/stages/po_stage.py` | Stage 6 `PoStageClass`: the candidate pool (printed PO(s), else the vendor's open POs), line scoring, refusals; hands the lines it is not sure of to Jev. |
+| `entities/stages/po_jev.py` | Stage 6, part 2 `PoJevClass`: one yes/no question per not-sure invoice line and candidate PO line, the confidence bands, recordings. |
 | `entities/stages/amounts_stage.py` | Stage 7 `AmountsStageClass`: one PO or a split, every line and balance. |
 | `entities/stages/decision_stage.py` | Stage 8 `DecisionStageClass`: outcome, summary, the four gates, the PO update(s). |
 | `entities/stages/persist_stage.py` | Stage 9 `PersistStageClass`: one transaction that closes the run, registers the invoice and consumes the POs. |
@@ -372,7 +384,7 @@ Other backend folders:
 
 | Path | What it holds |
 |---|---|
-| `backend/data/` | Seed CSVs, `samples.json`, `golden.json`, and `invoices/` with each sample PDF and its recorded reading. |
+| `backend/data/` | Seed CSVs, `samples.json`, `golden.json`, `jev_recordings.json`, and `invoices/` with each sample PDF and its recorded reading. |
 | `backend/scripts/check_imports.py` | The layer rule checker. |
 | `backend/scripts/make_invoices.py` | Generates the sample PDFs and their `.read.json` readings (reportlab; the scanned one through pypdfium2 and Pillow). |
 | `backend/scripts/run_golden.py` | Resets the database, runs every sample of the `samples` table in step order through the real pipeline, compares each with its `golden.json` row, prints a pass or fail table. |
@@ -449,10 +461,10 @@ meanwhile, in the background task:
 _process                                    (starts at once; runs proceed in parallel)
    |  try:
    |     _read      stages 0 intake, 1 extraction (a typed invoice: intake skipped, extraction converts)
-   |     _identify  stages 2 validation, 3 vendor                      <- no lock
+   |     _identify  stages 2 validation, 3 vendor, 4 bank              <- no lock
    |     take the matched vendor's lock (none when no vendor matched)
-   |        _check   stages 4 po, 5 amounts, 6 duplicate
-   |        _finish  stages 7 decision, 8 persist
+   |        _check   stages 5 duplicate, 6 po (Jev inside), 7 amounts
+   |        _finish  stages 8 decision, 9 persist
    |     release the vendor's lock; the next run of that vendor continues
    |  except any Exception:
    |     _fail    mark the current step failed and close the run as "error"
@@ -460,16 +472,16 @@ _process                                    (starts at once; runs proceed in par
 
 ### One lock per vendor
 
-Stages 0 to 3 read only the run's own document and the vendor master, so every run does them at
-once, including the model call. Stages 4 to 8 read and write data shared with other runs **of the
+Stages 0 to 4 read only the run's own document and the vendor master, so every run does them at
+once, including the model call. Stages 5 to 9 read and write data shared with other runs **of the
 same vendor**: that vendor's POs (every PO belongs to one vendor) and its approved invoices (the
 duplicate check only compares within a vendor). `PipelineEntityClass` keeps one `asyncio.Lock` per
-vendor id and holds it around stages 4 to 8:
+vendor id and holds it around stages 5 to 9:
 
 ```
-A (V001) ─ 0..3 ─► lock[V001] free  ─► 4..8 ─► release ─┐
-B (V001) ─ 0..3 ─► lock[V001] taken ─► waits ───────────┴─► 4..8: sees A's approval and PO usage
-C (V002) ─ 0..3 ─► lock[V002] free  ─► 4..8, alongside A
+A (V001) ─ 0..4 ─► lock[V001] free  ─► 5..9 ─► release ─┐
+B (V001) ─ 0..4 ─► lock[V001] taken ─► waits ───────────┴─► 5..9: sees A's approval and PO usage
+C (V002) ─ 0..4 ─► lock[V002] free  ─► 5..9, alongside A
 ```
 
 Without it, two copies of one invoice arriving together are both approved, and two invoices on one
@@ -541,9 +553,9 @@ lost. Dropping events for finished steps means a step is never shown going back 
 `running`. The result: you can open or refresh a run page at any time, during or after the run,
 and you get the full history and then the live tail.
 
-### Stage 8 commits everything at once
+### Stage 9 commits everything at once
 
-Stage 7 (decision) is a normal step. Stage 8 (persist) writes in **one database transaction**:
+Stage 8 (decision) is a normal step. Stage 9 (persist) writes in **one database transaction**:
 
 1. the invoice register row, when an extraction exists (whatever the outcome); `register_in` flushes
    it and returns its id;
@@ -606,8 +618,8 @@ saying so, and the reverse cannot happen either.
     v            payee account vs vendor master                               |
  5 duplicate --- vendor unknown? -------------> skipped                       |
     v            already registered? (needs no PO, so it comes first)         |
- 6 po            which PO(s) it draws on; no PO printed and the code         |
-    v            cannot choose -> Jev selects among the vendor's open POs     |
+ 6 po            which PO line each invoice line bills; a line the code      |
+    v            cannot settle -> Jev decides it, else the invoice is held     |
  7 amounts  ---- no PO or no taxable value? --> skipped                       |
     v                                                                         |
  8 decision  <----------------------------------------------------------------+
@@ -621,7 +633,7 @@ first one. A stage is skipped only when its input does not exist.
 
 ### Shared vocabulary
 
-- **Finding**: `Finding(code, severity, message, data)`. `code` is one of 35 fixed codes. `severity`
+- **Finding**: `Finding(code, severity, message, data)`. `code` is one of 45 fixed codes, 42 of them raised. `severity`
   is `info` (a fact or a passed check), `warn` (worth a look, does not stop payment) or `block`
   (stops automatic approval). `message` is a full sentence with the numbers in it. `data` holds the
   same numbers as strings.
@@ -643,7 +655,7 @@ first one. A stage is skipped only when its input does not exist.
 
 ### Stage 0: intake
 
-- **Where:** `PipelineEntityClass._intake`, using `PdfAdapterClass.inspect` and `StoreAdapterClass.save`.
+- **Where:** `IntakeStageClass.run` (`entities/stages/intake_stage.py`), using `PdfAdapterClass.inspect` and `StoreAdapterClass.save`.
 - **Input:** the file name and the raw bytes.
 - **Returns:** `IntakeResult`: `filename`, `media_type` (or `"unknown"`), `size_bytes`, `page_count`,
   `encrypted`, `text_layer`, `accepted`, `findings`.
@@ -667,8 +679,8 @@ The checks, in order. The first that fails gives the reason:
 | `FILE_REJECTED` | block (reject set) | any check above failed; `data` has `size_bytes`, `reason` |
 
 An accepted file is saved to `var/uploads/<run id>/<file name>`. A rejected file is never saved,
-and it never reaches the model, so it costs nothing. After a rejection, stages 1 to 6 are stored as
-skipped with "The file was rejected at intake.", and stages 7 and 8 still run. The decision is
+and it never reaches the model, so it costs nothing. After a rejection, stages 1 to 7 are stored as
+skipped with "The file was rejected at intake.", and stages 8 and 9 still run. The decision is
 `rejected` and no register row is written.
 
 **A manual run** (`POST /v1/runs/manual`) has no file. Intake is stored as `skipped` with the reason
@@ -684,12 +696,14 @@ to stage 1.
   `usage` (`input`, `cache_read`, `cache_write`, `output` tokens), `mode` (`live`, `recorded` or
   `manual`), `model`, `seconds`, `findings`.
 
-This is the only stage that uses a model. It reads; it never judges.
+This is the only stage that **reads** with a model, and the only one that calls a generative model
+at all. It reads; it never judges. (Stage 6 asks Jev, an evaluation model, which PO line a line
+bills; see [stage 6](#stage-6-po-matching-by-lines).)
 
 **A manual run** calls no model and looks up no recording. `ExtractionStageClass.typed` converts the
 typed `InvoiceRead` with the same `convert` a model reading goes through (amounts and dates parsed,
 blanks to none) and stores the step as `done` with `mode` `manual`, `model` `none`, `usage` none
-(so the run's `tokens` is null), `seconds` 0 and no findings. Stages 2 to 8 then run unchanged: a
+(so the run's `tokens` is null), `seconds` 0 and no findings. Stages 2 to 9 then run unchanged: a
 typed invoice with no number still blocks, a wrong bank account still blocks, duplicates are still
 caught, and an approval still consumes the PO.
 
@@ -810,7 +824,28 @@ and month names: `4 Nov 2024`, `4 November 2024`, `04-Nov-2024`, `4. November 20
 
 Both files are read once at startup.
 
-#### The live adapter (`AnthropicAdapterClass`)
+#### The live adapters
+
+There are two, with the same `extract` contract; `LLM_PROVIDER` picks. **`llm.env` sets
+`LLM_PROVIDER=openai`, so `OpenAIAdapterClass` is what runs** unless that line is changed.
+
+##### `OpenAIAdapterClass` (the configured one)
+
+One call to `AsyncOpenAI().responses.parse(...)`, with `text_format=InvoiceRead` and
+`reasoning.effort`. Three choices in it are worth knowing:
+
+- **`store=False`.** Invoices carry bank details, and OpenAI retains responses for 30 days by
+  default.
+- **Explicit prompt caching.** The system prompt goes first, as a `developer` message carrying a
+  `prompt_cache_breakpoint` of mode `explicit` that closes the cached prefix; the document and its
+  file name come after it. A fixed `prompt_cache_key` sends every call to the same cache. Explicit
+  mode matters: the automatic breakpoint would write each invoice into the cache, where nothing
+  could ever read it again. Measured on 2026-11-13: the first call wrote 3,535 tokens to the cache
+  and the second read 3,535 back.
+- **Token normalisation.** OpenAI counts cached tokens inside `input_tokens`; the adapter subtracts
+  them, so `input`, `cache_read`, `cache_write` and `output` mean the same for either provider.
+
+##### `AnthropicAdapterClass`
 
 One call to `AsyncAnthropic().messages.parse(...)`:
 
@@ -857,16 +892,16 @@ a careful reader should produce; they were not captured from a model.
 |---|---|---|
 | `EXTRACTION_FAILED` | block | live: the adapter raised `ExtractionError`. Message: "The invoice could not be read: `<error>`. Retry the run or enter the invoice manually." Recorded: no sample has these bytes. Message: "The invoice could not be read: no recorded reading matches this document; set ANTHROPIC_API_KEY to read new documents, or enter the invoice by hand." |
 
-Skipped when intake rejected the file. When extraction fails, stages 2 to 6 are skipped with
+Skipped when intake rejected the file. When extraction fails, stages 2 to 7 are skipped with
 "Nothing was extracted." and the run ends `needs_attention`.
 
 ### Stage 2: validation
 
-- **Where:** `RulesEntityClass.validate` (`rules_ent.py`).
+- **Where:** `ValidationStageClass.run` (`entities/stages/validation_stage.py`), using `RulesEntityClass` for the shared bands and the GSTIN shape.
 - **Input:** `InvoiceExtraction` and today's date.
 - **Returns:** `ValidationResult`: `taxable_value`, `tax_total`, `tax_rate_pct`, `derived`, `findings`.
 
-It computes the taxable value once, so stages 4, 5 and 6 compare the same number:
+It computes the taxable value once, so stages 5, 6 and 7 compare the same number:
 
 ```
 subtotal printed?  --yes--> taxable = subtotal                         derived = false
@@ -912,7 +947,7 @@ Never skipped once there is an extraction.
 
 ### Stage 3: vendor identification
 
-- **Where:** `VendorEntityClass.identify` (`vendor_ent.py`), using `MatchAdapterClass.ratio`.
+- **Where:** `VendorStageClass.run` (`entities/stages/vendor_stage.py`), using `VendorEntityClass.records` and `MatchAdapterClass.ratio`.
 - **Input:** the supplier `Party` and `BankDetails` from the extraction, and the vendor master
   (the table of vendors the company may pay).
 - **Returns:** `VendorMatch`: `vendor_id`, `legal_name`, `method` (`tax_id`, `bank_account`,
@@ -968,9 +1003,10 @@ then, for the chosen vendor, at any score:
    status "suspended"?                          --> VENDOR_SUSPENDED (block, reject set)
    the invoice prints a tax ID that is not
    the master's (prefix rule applies)?          --> TAX_ID_MISMATCH (block)
-   the invoice prints an account that is not
-   the master's (IBAN rule applies)?            --> BANK_ACCOUNT_MISMATCH (block)
 ```
+
+The payee account is **not** compared here. That is [stage 4](#stage-4-bank-validation), which runs
+next for every matched vendor.
 
 | Finding | Severity | Meaning |
 |---|---|---|
@@ -981,13 +1017,68 @@ then, for the chosen vendor, at any score:
 | `VENDOR_AMBIGUOUS` | block | the name is close to one or more vendors without a clear winner |
 | `VENDOR_NOT_FOUND` | block | no tax ID, account or name match |
 | `VENDOR_SUSPENDED` | block, reject set | the vendor is suspended in the master and must not be paid |
-| `BANK_ACCOUNT_MISMATCH` | block | the invoice asks for payment to a different account; both shown masked; "Verify the change with the vendor by phone before paying." |
 
-The bank check is skipped for a `bank_account` match, where the accounts are equal by definition.
-A tax ID match wins over an account match. If the tax ID points to vendor A and the account belongs to
-vendor B, the result is A plus a bank mismatch. Never skipped once there is an extraction.
+A tax ID match wins over an account match. If the tax ID points to vendor A and the account belongs
+to vendor B, the result is A, and stage 4 then raises the bank mismatch. Never skipped once there is
+an extraction.
 
-### Stage 4: PO matching, by lines
+### Stage 4: bank validation
+
+- **Where:** `BankStageClass.run` (`entities/stages/bank_stage.py`), using `VendorEntityClass.records`
+  and `IdentityTypes.same_payee`.
+- **Input:** the matched vendor id and the `BankDetails` read from the invoice.
+- **Returns:** `BankCheck`: `vendor_id`, `state` (`matched`, `mismatched`, `absent`),
+  `invoice_account`, `master_account` (both masked to their last four characters), `findings`.
+- **Skipped** with "The vendor is unknown, so there is no master account to compare." when stage 3
+  found no vendor.
+
+It asks one question: is the account the invoice wants to be paid into the one the vendor master
+holds? The accounts are compared exactly as identification compares them, so the IBAN and bank-code
+rules of [stage 3](#stage-3-vendor-identification) apply here too.
+
+```
+no account printed on the invoice   --> BANK_DETAILS_ABSENT (info): payment goes to the master account
+same payee (account and bank code)  --> BANK_ACCOUNT_VERIFIED (info)
+otherwise                           --> BANK_ACCOUNT_MISMATCH (block)
+```
+
+| Finding | Severity | When |
+|---|---|---|
+| `BANK_ACCOUNT_VERIFIED` | info | the printed account is the vendor master's |
+| `BANK_DETAILS_ABSENT` | info | the invoice prints no account; payment goes to the master's |
+| `BANK_ACCOUNT_MISMATCH` | block | a different account, **or** the same domestic number at a different bank code |
+
+The mismatch blocks **at any vendor score**, because a changed payee account on an otherwise
+correct invoice is the classic payment-diversion fraud. The message ends "Verify the change with
+the vendor by phone before paying." The same domestic number at another bank code is treated as a
+different account, because a domestic account number repeats across banks.
+
+### Stage 5: duplicate check
+
+- **Where:** `DuplicateStageClass.run` (`entities/stages/duplicate_stage.py`), using `InvoiceEntityClass.approved`.
+- **Input:** the vendor id, the extraction, the taxable value.
+- **Returns:** `DuplicateCheck`: `verdict` (`none`, `exact`, `suspected`), `prior_run`, `findings`.
+- **Skipped** with "The vendor is unknown." when stage 3 found no vendor.
+
+It compares the invoice only with this vendor's earlier **approved** invoices in the register.
+
+```
+normalised number: uppercase, remove spaces, "-" and "/"
+same vendor and same normalised number as an approved invoice?
+   --yes--> DUPLICATE_EXACT (block, reject set), prior_run set
+   |no
+   v
+same vendor, same taxable value, and (same invoice date or same line fingerprint)?
+   --yes--> DUPLICATE_SUSPECTED (block): "may be a re-send under a new number"
+   |no
+   v
+NO_DUPLICATE (info)
+```
+
+The **line fingerprint** is the sorted list of (description in lowercase words, quantity, unit
+price) for every line, stored as JSON.
+
+### Stage 6: PO matching, by lines
 
 One rule for any number of POs
 (design: docs/superpowers/specs/2026-11-14-po-matching-by-lines-design.md).
@@ -1013,9 +1104,9 @@ One rule for any number of POs
   unmatched or dropped → `LINES_NOT_MATCHED` (block) and stage 7 (amounts) is skipped. A printed PO no line landed on →
   `PO_UNUSED` (block). Amounts never choose a PO; stage 7 (amounts) checks them afterwards.
 
-### Stage 5: amount and line check
+### Stage 7: amount and line check
 
-- **Where:** `RulesEntityClass.amount_check`, with `OrderEntityClass.map_lines`.
+- **Where:** `AmountsStageClass.run` (`entities/stages/amounts_stage.py`), with `OrderEntityClass.map_lines` and `RulesEntityClass.tolerance`.
 - **Input:** the matched PO (`OrderSnapshot`: header, `remaining = total - consumed`, lines with
   consumed quantities), the taxable value, the invoice currency, the priced lines, the line mapping,
   the tolerance percentage, the invoice tax rate.
@@ -1093,7 +1184,7 @@ in another currency is held with `CURRENCY_MISMATCH` anyway.
 | `UNIT_PRICE_MISMATCH` | block |
 | `TAX_RATE_MISMATCH` | block |
 
-The bands used in stages 2 to 5, side by side:
+The bands used in stages 2 to 7, side by side:
 
 | Comparison | Band |
 |---|---|
@@ -1101,41 +1192,16 @@ The bands used in stages 2 to 5, side by side:
 | unit price against the PO line | pct percent, no floor |
 | tax rate against the PO line | 0.1 percentage points |
 | line sum and tax sum arithmetic | 1 |
-| inference price fit and lone-line mapping | 0.5 percent |
+| lone-line mapping (a one-line PO matched by price) | 0.5 percent |
 | description match | token-set ratio 70 |
 
-### Stage 6: duplicate check
+### Stage 8: decision
 
-- **Where:** `InvoiceEntityClass.check` (`invoice_ent.py`).
-- **Input:** the vendor id, the extraction, the taxable value.
-- **Returns:** `DuplicateCheck`: `verdict` (`none`, `exact`, `suspected`), `prior_run`, `findings`.
-- **Skipped** with "The vendor is unknown." when stage 3 found no vendor.
-
-It compares the invoice only with this vendor's earlier **approved** invoices in the register.
-
-```
-normalised number: uppercase, remove spaces, "-" and "/"
-same vendor and same normalised number as an approved invoice?
-   --yes--> DUPLICATE_EXACT (block, reject set), prior_run set
-   |no
-   v
-same vendor, same taxable value, and (same invoice date or same line fingerprint)?
-   --yes--> DUPLICATE_SUSPECTED (block): "may be a re-send under a new number"
-   |no
-   v
-NO_DUPLICATE (info)
-```
-
-The **line fingerprint** is the sorted list of (description in lowercase words, quantity, unit
-price) for every line, stored as JSON.
-
-### Stage 7: decision
-
-- **Where:** `RulesEntityClass.decide`.
+- **Where:** `DecisionStageClass.run` (`entities/stages/decision_stage.py`), using `RulesEntityClass.ordered` and the reject set.
 - **Input:** every finding of the run (`Trace.findings()`), the amount check, the PO number.
-- **Returns:** `Decision`: `outcome`, `summary`, `reasons`, `gates` (three rows: `vendor`, `po`,
-  `amount`, each with `passed` and a one-sentence `detail`; a gate passes when its stage ran and
-  raised no block finding), `update` (`OrderUpdate`: `po_number`,
+- **Returns:** `Decision`: `outcome`, `summary`, `reasons`, `gates` (four rows: `vendor`, `bank`,
+  `po`, `amount`, each with `passed` and a one-sentence `detail`; a gate passes when its stage ran
+  and raised no block finding), `update` (`OrderUpdate`: `po_number`,
   `amount`, `remaining_after`, `quantities` by PO line number). `outcome`, `summary` and `reasons`
   live in memory only: the outcome and summary are stored once, on the run row, and the reasons are
   not stored.
@@ -1171,14 +1237,15 @@ The decision step's `data` holds only `update` (`Decision.outcome`, `summary` an
 excluded from the dump). It has no findings of its own. The run page shows the decision's outcome and
 summary from the run itself (the `done` event, then the detail reload).
 
-### Stage 8: persist
+### Stage 9: persist
 
-- **Where:** `PipelineEntityClass._finish`, with `InvoiceEntityClass.register_in`,
-  `OrderEntityClass.consume_in`, `RunEntityClass.record_in` and `close_in`.
+- **Where:** `PersistStageClass.run` (`entities/stages/persist_stage.py`), with
+  `InvoiceEntityClass.register_in`, `OrderEntityClass.consume_in`, `RunEntityClass.record_in` and
+  `close_in`.
 - **Step data:** `registered` (whether a register row was written), `po_updated` (the PO number or
   none), `remaining_after`.
 
-In one transaction (see [section 4](#stage-8-commits-everything-at-once)):
+In one transaction (see [section 4](#stage-9-commits-everything-at-once)):
 
 - **Register row** for every run that produced an extraction, whatever the outcome. It holds the
   vendor, the PO, the number and its normalised key, the date, the taxable value, the fingerprint,
@@ -1354,18 +1421,23 @@ UK Ltd (London).
 
 | Id | Legal name | Tax ID | Status | Why it is there |
 |---|---|---|---|---|
-| V001 | Acme Supplies Pvt Ltd | 29AACCA1234F1Z5 | approved | split invoices, duplicate, missing number |
-| V002 | Zenith Traders LLP | 27AAEFZ5678K1Z3 | approved | scanned invoice, amount inside tolerance |
+| V001 | Acme Supplies Pvt Ltd | 29AACCA1234F1Z5 | approved | duplicate and re-issue, missing number, credit note |
+| V002 | Zenith Traders LLP | 27AAEFZ5678K1Z3 | approved | scanned invoice with tax-inclusive prices; a name that matches no vendor |
 | V003 | Nova Components Pvt Ltd | 33AAECN4321P1Z8 | approved | PO inferred |
 | V004 | Orion Logistics Pvt Ltd | 07AABCO8765L1Z2 | approved | PO ambiguous |
-| V005 | Pixel Print Solutions | 29AAKFP2468M1Z6 | approved | bank mismatch, tax-inclusive prices |
+| V005 | Pixel Print Solutions | 29AAKFP2468M1Z6 | approved | bank mismatch, cancelled PO, the line checks |
 | V006 | Nova Component Systems Pvt Ltd | 33AAHCN9753Q1Z4 | suspended | a look-alike of V003, for the name and suspension rules |
-| V007 | Global Parts Inc | 84-1234567 (EIN) | approved | US vendor, USD, SWIFT CHASUS33: month-first dates |
-| V008 | Kessler Industrietechnik GmbH | DE287654321 (VAT) | approved | German vendor, EUR, IBAN: decimal commas, MwSt. |
-| V009 | Harbour & Finch Ltd | GB123456789 (VAT) | approved | UK vendor, GBP, sort code: VAT-inclusive prices |
-| V010 | Brightline Infotech Pvt Ltd | 29AAFCB7421K1Z3 | approved | IT and office equipment; the vendor with multi-line POs (samples 21 to 24) |
+| V007 | Global Parts Inc | 84-1234567 (EIN) | approved | US vendor, USD, SWIFT CHASUS33: month-first dates (INV-010) |
+| V008 | Kessler Industrietechnik GmbH | DE287654321 (VAT) | approved | German vendor, EUR, IBAN: decimal commas, MwSt. (INV-011) |
+| V009 | Harbour & Finch Ltd | GB123456789 (VAT) | approved | UK vendor, GBP, sort code: VAT-inclusive prices (INV-012) |
+| V010 | Brightline Infotech Pvt Ltd | 29AAFCB7421K1Z3 | approved | IT and office equipment; multi-line POs (sample 16) |
+| V011 | Saffron Facility Supplies Pvt Ltd | 29AAKCS3141R1Z7 | approved | three open POs; the currency and lump-sum samples (5, 22, 23) |
+| V012 | Kaveri Office Interiors Pvt Ltd | 29AAJCK5567L1Z2 | approved | reworded and ambiguous lines: both Jev samples (19, 20) |
+| V013 | Vertex Workplace Solutions Pvt Ltd | 29AAHCV2468N1Z4 | approved | two POs for the same chair at different prices; unused seed data since the scenario was cut, with no sample and no test |
 
-**Purchase orders (`purchase_orders.csv` and `po_lines.csv`), each with one line, all before tax**
+**Purchase orders (`purchase_orders.csv` and `po_lines.csv`), all before tax.** PO-2024-0142 to
+PO-2024-0158 carry one line each; PO-2024-0159 onward are the multi-line POs the line matching and
+the Jev samples need.
 
 | PO | Vendor | Date | Line | Total | Seeded status |
 |---|---|---|---|---|---|
@@ -1389,9 +1461,20 @@ UK Ltd (London).
 | PO-2024-0159 | V010 | 2024-10-30 | four lines: 10 laptops at 52,000; 10 docking stations at 6,500; 20 monitors at 11,000; 20 headsets at 3,200 | 869,000.00 | open |
 | PO-2024-0160 | V010 | 2024-10-31 | two lines: 15 office desks at 9,000; 10 filing cabinets at 5,500 | 190,000.00 | open |
 | PO-2024-0161 | V010 | 2024-11-01 | 20 magnetic whiteboards at 2,400 | 48,000.00 | open |
+| PO-2024-0162 | V011 | 2024-11-04 | three lines: 20 ergonomic mesh task chairs at 7,500; 30 LED desk lamps at 1,800; 12 acoustic partition panels at 6,200 | 278,400.00 | open |
+| PO-2024-0163 | V011 | 2024-11-05 | three lines: 6 laser printers at 18,000; 8 paper shredders at 9,500; 5 laminating machines at 4,200 | 205,000.00 | open |
+| PO-2024-0164 | V011 | 2024-11-06 | two lines: 4 water dispensers at 14,000; 6 microwave ovens at 8,500 | 107,000.00 | open |
+| PO-2024-0165 | V012 | 2024-11-08 | three lines: 40 stackable visitor chairs at 2,600; 6 glass whiteboards (6 x 4 ft) at 12,500; 25 ergonomic footrests at 1,400 | 214,000.00 | open |
+| PO-2024-0166 | V012 | 2024-11-12 | three lines: 60 stackable visitor chairs at 2,600; 4 round meeting tables at 32,000; 30 under-desk cable trays at 900 | 311,000.00 | open |
+| PO-2024-0167 | V013 | 2024-11-14 | three lines: 40 cafeteria chairs at 2,600; 20 monitor arms at 2,450; 20 wireless headsets at 3,200 | 217,000.00 | open |
+| PO-2024-0168 | V013 | 2024-11-20 | 60 cafeteria chairs at 2,800 | 168,000.00 | open |
 
-Every Indian PO line expects 18 percent tax; PO-2024-0150 expects 0 percent (a US export),
-PO-2024-0154 19 percent and PO-2024-0155 20 percent.
+Every Indian PO line expects 18 percent tax, except PO-2024-0157 at 12 percent; PO-2024-0150
+expects 0 percent (a US export), PO-2024-0154 19 percent and PO-2024-0155 20 percent.
+
+The same chair appears on PO-2024-0165 and PO-2024-0166 at one price, and on PO-2024-0167 and
+PO-2024-0168 at two different prices. That is deliberate: it is what makes samples 38 to 40 need
+Jev, and what the oldest-PO-first allocation rule exists for.
 
 ---
 
@@ -1418,31 +1501,37 @@ Every code that exists, in the order of `FindingTypes.FindingCode`:
 | `VENDOR_AMBIGUOUS` | block | 3 vendor | the name is close to vendors without a clear winner |
 | `VENDOR_NAME_ONLY` | block | 3 vendor | matched by name only |
 | `VENDOR_SCORE_LOW` | block | 3 vendor | one identifier matched alone; the score is not above the pass score |
-| `TAX_ID_MISMATCH` | block | 3 vendor | printed tax ID differs from the master |
 | `VENDOR_SUSPENDED` | block (reject) | 3 vendor | the vendor is suspended |
-| `BANK_ACCOUNT_MISMATCH` | block | 3 vendor | payment account differs from the master |
-| `PO_MATCHED` | info | 4 po | the printed PO reference resolved |
-| `PO_NOT_FOUND` | block | 4 po | the referenced PO does not exist, the reference is malformed, or nothing can be inferred |
-| `PO_VENDOR_MISMATCH` | block | 4 po | the PO belongs to another vendor |
-| `PO_CANCELLED` | block (reject) | 4 po | the PO was cancelled |
-| `PO_INFERRED` | info or block | 4 po | runs stored before line matching only |
-| `LINES_MATCHED_BY_JEV` | info | 6 po | Jev settled the lines the code was not sure about |
-| `LINES_NOT_MATCHED` | block | 6 po | a line could not be settled with confidence; amounts skipped |
+| `TAX_ID_MISMATCH` | block | 3 vendor | printed tax ID differs from the master |
+| `BANK_ACCOUNT_MISMATCH` | block | 4 bank | payment account differs from the master, or the same number at another bank code |
+| `BANK_ACCOUNT_VERIFIED` | info | 4 bank | the printed account is the vendor master's |
+| `BANK_DETAILS_ABSENT` | info | 4 bank | no account printed; payment goes to the master's account |
+| `PO_MATCHED` | info | 6 po | every line settled, by printed reference or by the lines (raised alongside `LINES_MATCHED_BY_JEV` when Jev settled some) |
+| `PO_NOT_FOUND` | block | 6 po | the referenced PO does not exist, the reference is malformed, or the pool is empty |
+| `PO_VENDOR_MISMATCH` | block | 6 po | the PO belongs to another vendor |
+| `PO_CANCELLED` | block (reject) | 6 po | the PO was cancelled |
+| `PO_INFERRED` | — | — | **no longer raised**; weighted PO inference was replaced by line matching |
+| `PO_AMBIGUOUS` | — | — | **no longer raised**; superseded by line matching |
+| `PO_SELECTED_BY_JEV` | — | — | **no longer raised**; Jev now settles lines, not whole POs |
 | `PO_UNUSED` | block | 6 po | a printed PO that no invoice line landed on |
-| `PO_AMBIGUOUS` | block | 4 po | two or more open POs fit |
-| `CURRENCY_MISMATCH` | block | 5 amounts | invoice currency differs from the PO currency |
-| `CURRENCY_NOT_READ` | warn | 5 amounts | no currency could be read; the amounts were compared as if in the PO's currency |
-| `AMOUNT_WITHIN_TOLERANCE` | info | 5 amounts | taxable value within the remaining balance plus tolerance |
-| `PARTIAL_DELIVERY` | info | 5 amounts | less than the remaining balance; the rest stays open |
-| `PO_FULLY_INVOICED` | info | 5 amounts | the invoice covers the whole remaining balance |
-| `OVER_CONSUMPTION` | block | 5 amounts | above the remaining balance by more than the tolerance |
-| `QTY_EXCEEDS_ORDERED` | block | 5 amounts | cumulative quantity above the ordered quantity |
-| `UNIT_PRICE_MISMATCH` | block | 5 amounts | unit price off by more than the tolerance percentage |
-| `TAX_RATE_MISMATCH` | block | 5 amounts | tax rate off by more than 0.1 |
-| `HEADER_LEVEL_ONLY` | block | 5 amounts | lines could not all be mapped; prices and quantities unverified |
-| `NO_DUPLICATE` | info | 6 duplicate | no earlier approved invoice matches |
-| `DUPLICATE_EXACT` | block (reject) | 6 duplicate | same vendor, same normalised number as an approved invoice |
-| `DUPLICATE_SUSPECTED` | block | 6 duplicate | same vendor and taxable value, and same date or same lines |
+| `LINES_NOT_MATCHED` | block | 6 po | a line could not be settled with confidence; amounts skipped |
+| `LINES_MATCHED_BY_JEV` | info | 6 po | Jev settled the lines the code was not sure about |
+| `CURRENCY_MISMATCH` | block | 7 amounts | invoice currency differs from the PO currency |
+| `CURRENCY_NOT_READ` | warn | 7 amounts | no currency could be read; the amounts were compared as if in the PO's currency |
+| `AMOUNT_WITHIN_TOLERANCE` | info | 7 amounts | taxable value within the remaining balance plus tolerance |
+| `PARTIAL_DELIVERY` | info | 7 amounts | less than the remaining balance; the rest stays open |
+| `PO_FULLY_INVOICED` | info | 7 amounts | the invoice covers the whole remaining balance |
+| `OVER_CONSUMPTION` | block | 7 amounts | above the remaining balance by more than the tolerance |
+| `QTY_EXCEEDS_ORDERED` | block | 7 amounts | cumulative quantity above the ordered quantity |
+| `UNIT_PRICE_MISMATCH` | block | 7 amounts | unit price off by more than the tolerance percentage |
+| `TAX_RATE_MISMATCH` | block | 7 amounts | tax rate off by more than 0.1 |
+| `HEADER_LEVEL_ONLY` | block | 7 amounts | lines could not all be mapped; prices and quantities unverified |
+| `NO_DUPLICATE` | info | 5 duplicate | no earlier approved invoice matches |
+| `DUPLICATE_EXACT` | block (reject) | 5 duplicate | same vendor, same normalised number as an approved invoice |
+| `DUPLICATE_SUSPECTED` | block | 5 duplicate | same vendor and taxable value, and same date or same lines |
+
+All 45 codes are defined in `FindingTypes.FindingCode`; **42 are raised**. The three marked
+above are left in the type so that runs stored before PO matching was rewritten still load.
 
 **The decision rule:**
 
@@ -1552,7 +1641,7 @@ Vite, React, TypeScript, Tailwind and React Router, with small local UI componen
 
 The typed client: one function per endpoint (`api.meta`, `api.samples`, `api.reset`, `api.runs`,
 `api.run`, `api.orders`, `api.runSample`, `api.upload`). It also defines `ApiError` (carries the HTTP
-status and the `detail` text; status 0 means the backend is not reachable), `STEP_ORDER` (the nine
+status and the `detail` text; status 0 means the backend is not reachable), `STEP_ORDER` (the ten
 step names), and `subscribeRun`, which opens an `EventSource`, listens for `step` and `done`, and
 closes itself after `done` or an error.
 
@@ -1597,7 +1686,7 @@ the run has finished replaces them. A 404 shows "This run does not exist."
 - The invoice as received, from `/v1/runs/{run_id}/document`: a PDF in the browser's own viewer or
   an image, beside the timeline on a wide screen and below it on a narrow one, with an "Open in
   new tab" link. It is shown only when intake accepted a file, so a typed or rejected invoice has none.
-- A timeline of the nine steps. Each step shows its state (pending, running, done, skipped, failed,
+- A timeline of the ten steps. Each step shows its state (pending, running, done, skipped, failed,
   not run), its time, its findings coloured by severity, the skip reason, and an "Evidence" panel
   (`src/components/evidence.tsx`) that renders the step's `data`:
 
@@ -1607,6 +1696,7 @@ the run has finished replaces them. A 404 shows "This run does not exist."
 | extraction | supplier and bank, buyer, invoice fields, line items, totals and tax lines, the quoted source text, and the model block: mode, model, model time and tokens (input, cache read, cache write, output), or "No tokens used" in recorded mode |
 | validation | taxable value, tax total, tax rate, whether the value was derived |
 | vendor | vendor, id, method, score, candidates |
+| bank | the payee account, the master account, and whether they match |
 | po | PO, method, signals, candidate POs |
 | amounts | basis, numbers, level ("Line level" or "Header level only"), per-line checks |
 | duplicate | verdict: no duplicate, exact or suspected |
@@ -1634,7 +1724,7 @@ It refreshes every 4000 ms.
 
 ## 10. The sample scenario
 
-Forty-six sample invoices, in the `samples` table (the story with each PDF and its recorded reading,
+Twenty-three sample invoices, in the `samples` table (the story with each PDF and its recorded reading,
 seeded from `backend/data/samples.json` and `backend/data/invoices/` at startup and on every reset) and `backend/data/golden.json` (the expected result). Run them in order after a reset. The "left" column is the PO's balance
 after the step, taken from `golden.json`. It assumes every earlier step has run; the system does
 not enforce the order, so a sample run out of order is checked against the data as it then is.
@@ -1642,88 +1732,79 @@ not enforce the order, so a sample run out of order is checked against the data 
 | Step | Sample | What it shows | Outcome | Codes expected (at least) | PO, left after |
 |---|---|---|---|---|---|
 | 1 | INV-001 | Happy path: clean PDF. Acme invoices 30 of 50 laptop stands. Approved as a partial delivery; PO-2024-0142 drops from 60,000 to 24,000. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0142, 24,000.00 |
-| 2 | INV-002 | Happy path: scanned PDF. A scanned Zenith invoice with no text layer. Read by vision, approved; PO-2024-0143 is fully invoiced. | approved | `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0143, 0.00 |
+| 2 | INV-002 | Scanned PDF, with tax inside the prices. A scanned Zenith invoice with no text layer, printing GST-inclusive prices and one total of 2,00,600.00 with no taxable value row. Vision reads the document and the taxable 1,70,000.00 is derived from the 18% rate. Approved; PO-2024-0143 is fully invoiced. | approved | `TAXABLE_VALUE_DERIVED`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0143, 0.00 |
 | 3 | INV-003 | Password-protected PDF. Acme sends its invoice as a password-protected PDF. It cannot be opened, so intake refuses it and nothing else runs. Rejected: ask the supplier for an unlocked copy. | rejected | `FILE_REJECTED` | none |
-| 4 | INV-004 | Missing invoice number. An Acme invoice that matches its PO but prints no invoice number. Needs attention: it cannot be approved without one, and PO-2024-0153 keeps its 45,000. | needs_attention | `MISSING_INVOICE_NUMBER`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE` | PO-2024-0153, 45,000.00 |
-| 5 | INV-005 | Incomplete invoice: no date, no total. Orion bills the Delhi freight against PO-2024-0146, but the invoice prints no date and no grand total. The missing date is a warning; without a total the amounts cannot be checked, so it needs attention and PO-2024-0146 keeps its 82,000. | needs_attention | `MISSING_DATE`, `MISSING_TOTAL`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0146, 82,000.00 |
-| 6 | INV-006 | Warnings only: future and unclear date, no currency. Saffron bills 8 paper shredders against PO-2024-0163. The invoice prints no GSTIN, no address and no currency, and is dated 03/04/2030: in the future, and nothing on the page says whether that is 3 April or 4 March. Saffron is still identified by its bank account and name. Each of these is a warning and none blocks, so it is approved with the warnings shown. | approved | `DATE_IN_FUTURE`, `DATE_AMBIGUOUS`, `PO_MATCHED`, `CURRENCY_NOT_READ`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0163, 129,000.00 |
-| 7 | INV-007 | Lines and totals that do not add up. Nova bills 300 connector modules (45,000.00) against PO-2024-0144, but prints a taxable value of 45,500.00 and a total of 54,000.00, which is not 45,500.00 plus 8,100.00 GST. Sums that do not add up block, so it needs attention and PO-2024-0144 keeps its 45,000. | needs_attention | `LINE_SUM_MISMATCH`, `TAX_SUM_MISMATCH`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0144, 45,000.00 |
-| 8 | INV-008 | Credit note: negative amounts. Acme sends a credit note for 5 returned cable trays: a negative quantity and negative amounts (-3,250.00 plus GST). A credit note is never processed or consumed automatically, so it needs attention. | needs_attention | `NON_POSITIVE_AMOUNT`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0158, 65,000.00 |
-| 9 | INV-009 | Tax embedded in prices. Pixel Print prints GST-inclusive prices and one total of 59,000, with no taxable value or tax rows. The taxable 50,000 is derived from the 18% rate; approved, PO-2024-0152 is fully invoiced. | approved | `TAXABLE_VALUE_DERIVED`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0152, 0.00 |
-| 10 | INV-010 | International: US invoice, month-first date. A US export invoice in USD printed 11/04/2024. The document is American, so it is read month first as 4 November 2024, not 11 April. Approved; PO-2024-0150 is fully invoiced. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0150, 0.00 |
-| 11 | INV-011 | International: German invoice, decimal comma and VAT. A German invoice in EUR with amounts like 14.994,00, MwSt. 19 % and an IBAN. Read with the comma as the decimal point. Approved; PO-2024-0154 is fully invoiced. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0154, 0.00 |
-| 12 | INV-012 | International: UK invoice, VAT-inclusive prices. A UK invoice in GBP whose prices include 20% VAT, with the VAT shown but no net total. The taxable value 3,300.00 is derived from the total and the VAT. Approved; PO-2024-0155 is fully invoiced. | approved | `TAXABLE_VALUE_DERIVED`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0155, 0.00 |
-| 13 | INV-013 | Supplier not in the vendor master. Lotus Workspace Interiors is not an approved vendor: its GSTIN, bank account and name match nobody. No PO is printed, and no PO can be matched for an unknown vendor. Needs attention: onboard the vendor or refuse the invoice. | needs_attention | `VENDOR_NOT_FOUND`, `PO_NOT_FOUND` | none |
-| 14 | INV-014 | Rejected: suspended vendor. Nova Component Systems is suspended in the vendor master. The invoice is rejected whatever it bills; Jev is never asked. | rejected | `VENDOR_SUSPENDED`, `PO_NOT_FOUND` | none |
-| 15 | INV-015 | GSTIN misprinted. Acme's invoice prints GSTIN 29AACCA1234F0Z5: not a valid GSTIN shape, and not the 29AACCA1234F1Z5 in the vendor master. The bank account and name still point to Acme, but a different tax ID blocks payment until someone confirms who is invoicing. | needs_attention | `TAX_ID_FORMAT_INVALID`, `TAX_ID_MISMATCH`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0153, 45,000.00 |
-| 16 | INV-016 | Bank account matches, name does not. An invoice from 'ZT Office Solutions', with no GSTIN, asks to be paid into Zenith's bank account. Only the bank account matches the vendor master (60 points, more than 80 needed), so the vendor is not identified with confidence. Needs attention: confirm it is Zenith. | needs_attention | `VENDOR_SCORE_LOW`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0156, 255,000.00 |
-| 17 | INV-017 | Vendor found by name only. Orion prints neither its GSTIN nor bank details. The name matches Orion exactly, but a name alone does not prove who is invoicing, so a person must confirm the vendor. Needs attention. | needs_attention | `VENDOR_NAME_ONLY`, `BANK_DETAILS_ABSENT`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0145, 80,000.00 |
-| 18 | INV-018 | Name close to two vendors. 'Nova Component Pvt Ltd', with no GSTIN or bank details, is close to two vendors in the master: Nova Components (approved) and Nova Component Systems (suspended). The process refuses to choose between them. Needs attention. | needs_attention | `VENDOR_AMBIGUOUS`, `PO_NOT_FOUND` | none |
-| 19 | INV-019 | Bank account mismatch. Everything matches except the bank account, which differs from the vendor master. Needs attention as a fraud signal. | needs_attention | `BANK_ACCOUNT_MISMATCH` | PO-2024-0147, 25,000.00 |
-| 20 | INV-020 | No bank details on the invoice. Brightline prints no bank account at all. The GSTIN and the name both match the vendor master (score 100), so the vendor is still identified; the bank stage notes that payment goes to the master account. Approved; PO-2024-0161 is fully invoiced. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0161, 0.00 |
-| 21 | INV-021 | Duplicate invoice. Acme re-sends invoice ACM/24-25/0187. Rejected as an exact duplicate of step 1. | rejected | `DUPLICATE_EXACT`, `OVER_CONSUMPTION`, `QTY_EXCEEDS_ORDERED` | PO-2024-0142, 24,000.00 |
-| 22 | INV-022 | Re-issue setup: the original invoice. Acme bills 40 cable trays, 26,000, on PO-2024-0158. Approved as a partial delivery; 39,000 remains. Run it before INV-023. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0158, 39,000.00 |
-| 23 | INV-023 | Re-issued under a new number. Acme sends the same 40 trays, same date and amount, under a new invoice number. The number check passes, but the details match INV-022, so it is held as a suspected duplicate. PO-2024-0158 keeps its 39,000. | needs_attention | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `DUPLICATE_SUSPECTED` | PO-2024-0158, 39,000.00 |
-| 24 | INV-024 | Split invoice: final shipment. Acme invoices the remaining 20 stands. Approved; PO-2024-0142 is fully invoiced. | approved | `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0142, 0.00 |
-| 25 | INV-025 | Split invoice: over-consumption. A third Acme invoice on the same PO. Needs attention: nothing is left on the PO and the quantity exceeds the order. | needs_attention | `OVER_CONSUMPTION`, `QTY_EXCEEDS_ORDERED` | PO-2024-0142, 0.00 |
-| 26 | INV-026 | Some lines of a multi-line PO. PO-2024-0159 orders four different items. Brightline bills two of them in full (10 laptops and 10 docking stations, 585,000). Approved as a partial delivery; 284,000 remains for the monitors and headsets. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0159, 284,000.00 |
-| 27 | INV-027 | Partial invoice, no PO number: matched by its line. Brightline bills 10 of the 20 monitors and prints no PO number. Only PO-2024-0159 orders monitors and the description matches exactly, so the code is sure of the line and matches it without Jev. Approved as a partial delivery. Run INV-026 first. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0159, 174,000.00 |
-| 28 | INV-028 | One invoice split between two POs. Brightline bills headsets from PO-2024-0159 and desks from PO-2024-0160 on one invoice and prints both PO numbers. Each line sits on exactly one of the POs, so the invoice is split: 64,000 on PO-2024-0159 and 135,000 on PO-2024-0160. Approved; both balances drop in one step. Run INV-027 first. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0159, 110,000.00 |
-| 29 | INV-029 | PO number of another vendor. Orion quotes PO-2024-0153, which belongs to Acme. The PO is not matched to Orion and nothing is drawn from Acme's PO. Needs attention. | needs_attention | `PO_VENDOR_MISMATCH` | none |
-| 30 | INV-030 | Rejected: cancelled PO. Pixel Print bills business cards against PO-2024-0149, which was cancelled. Rejected; a printed PO is never handed to Jev. | rejected | `PO_CANCELLED` | none |
-| 31 | INV-031 | PO number that does not exist. Saffron prints PO-2024-0999, which is not in the PO register. A printed PO number is never replaced by a guess, so the invoice needs attention. | needs_attention | `PO_NOT_FOUND` | none |
-| 32 | INV-032 | Invoice dated before the PO. Kaveri bills 2 glass whiteboards on an invoice dated 2 November 2024, before either of its POs was raised (8 and 12 November). No open PO existed on that date, so none is matched. Needs attention. | needs_attention | `PO_NOT_FOUND` | none |
-| 33 | INV-033 | No PO number: lines found on two POs. Saffron prints no PO number and has three open POs. The invoice bills 10 of 20 chairs and all 30 desk lamps from PO-2024-0162 and 2 of 6 printers from PO-2024-0163. Every line matches one PO line exactly, so the code splits the invoice without asking Jev: 129,000 and 36,000. Approved. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0162, 149,400.00 |
-| 34 | INV-034 | Jev keeps reworded lines. Kaveri bills 10 'Ergo footrest pad' and 2 'Glass marker board 6ft x 4ft' against PO-2024-0165. They score 74 and 72 against 'Ergonomic footrest' and 'Glass whiteboard (6 x 4 ft)', below the 90 the code needs to be sure, so Jev is asked and confirms both. Approved as a partial delivery. | approved | `PO_MATCHED`, `LINES_MATCHED_BY_JEV`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0165, 175,000.00 |
-| 35 | INV-035 | An ambiguous line: Jev is not confident, so a person decides. Kaveri bills 12 'Meeting table wire tray' against PO-2024-0166. The code's best text match is the meeting table (score 72), so it is not sure and asks Jev. Jev rejects the table and is not confident (0.80 or less) that the under-desk cable tray is the same item, so the line stays unmatched. Needs attention: match the line by hand. | needs_attention | `LINES_NOT_MATCHED`, `PO_UNUSED` | PO-2024-0166, 311,000.00 |
-| 36 | INV-036 | Wrong PO number printed. Brightline prints PO-2024-0160 but bills 5 monitors, which only PO-2024-0159 orders. Only the printed PO is searched: Jev confirms none of its lines is a monitor, so the line stays unmatched. Needs attention; PO-2024-0159 is never drawn on. Run INV-028 first. | needs_attention | `LINES_NOT_MATCHED`, `PO_UNUSED` | PO-2024-0160, 55,000.00 |
-| 37 | INV-037 | Freight and a look-alike item on no PO line. Vertex bills 10 wireless headsets, 5 'Monitor' and a freight charge, with no PO number. The headsets match exactly, so the code settles that line without Jev. Jev is asked about the other two: 'Monitor' is not the PO's monitor arm, even at the same price, and freight is on no PO line. Needs attention: those two lines are not on any PO. | needs_attention | `LINES_NOT_MATCHED` | PO-2024-0167, 217,000.00 |
-| 38 | INV-038 | Same item on two POs: oldest first. Kaveri bills 30 stackable visitor chairs with no PO number. Both its open POs order that chair at the same price, so the code is not sure which; Jev says both are right, and the code fills the oldest PO first: 30 chairs from PO-2024-0165. Approved; 10 chairs remain on that PO line. Run INV-034 first. | approved | `PO_MATCHED`, `LINES_MATCHED_BY_JEV`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0165, 97,000.00 |
-| 39 | INV-039 | One line split across two POs, oldest first. Kaveri bills 70 stackable visitor chairs with no PO number. Jev says the line draws on both POs' chair lines; the code fills the oldest PO first: the last 10 chairs of PO-2024-0165, then 60 of PO-2024-0166. Approved; both chair lines are fully used. Run INV-038 first. | approved | `PO_MATCHED`, `LINES_MATCHED_BY_JEV`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0165, 71,000.00 |
-| 40 | INV-040 | Same item on two POs at different prices. Vertex bills 30 cafeteria chairs at 2,800 with no PO number. Both its POs order that chair: at 2,600 (PO-2024-0167, older) and at 2,800 (PO-2024-0168). Jev picks the line with the invoice's price, so the line goes to PO-2024-0168 instead of the code's suggestion. Approved as a partial delivery. | approved | `PO_MATCHED`, `LINES_MATCHED_BY_JEV`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0168, 84,000.00 |
-| 41 | INV-041 | Amount close but not exact. Zenith bills 40 monitor arms at 2,475 against a PO price of 2,450: 1,000 over the 98,000 balance, inside the 1,960 tolerance. Approved; PO-2024-0151 is fully invoiced, 1,000 over. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0151, -1,000.00 |
-| 42 | INV-042 | Price raised inside the PO balance. Zenith bills 10 chairs at 9,350 against a PO price of 8,500 (10% more). The 93,500 fits easily inside the 255,000 balance, so only the line check catches it. Needs attention; PO-2024-0156 keeps its 255,000. | needs_attention | `PO_MATCHED`, `UNIT_PRICE_MISMATCH` | PO-2024-0156, 255,000.00 |
-| 43 | INV-043 | Wrong GST rate. Pixel Print charges 18% GST on notebooks the PO priced at 12%. Quantity, price and amount all match; only the tax rate is wrong. Needs attention; PO-2024-0157 keeps its 30,000. | needs_attention | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `TAX_RATE_MISMATCH` | PO-2024-0157, 30,000.00 |
-| 44 | INV-044 | Quantity more than what is left, on a split invoice. Saffron bills 14 chairs and 2 microwaves with no PO number. The lines match PO-2024-0162 and PO-2024-0164, but only 10 chairs are left on PO-2024-0162 after INV-033. The quantity check fails, so the invoice needs attention and neither PO is consumed. Run INV-033 first. | needs_attention | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY`, `QTY_EXCEEDS_ORDERED` | PO-2024-0162, 149,400.00 |
-| 45 | INV-045 | Invoice in the wrong currency. Saffron bills 2 water dispensers against PO-2024-0164, but in USD; the PO is in INR. A currency difference blocks, so the invoice needs attention. | needs_attention | `PO_MATCHED`, `CURRENCY_MISMATCH`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0164, 107,000.00 |
-| 46 | INV-046 | Split invoice with a line that has no unit price. Saffron prints PO-2024-0162 and PO-2024-0164 and bills 4 acoustic panels as a lump sum (24,800.00, no unit price) and 2 water dispensers. Without a unit price the invoice cannot be split between the two POs line by line, so only the totals are compared and the invoice needs attention; neither PO is consumed. | needs_attention | `PO_MATCHED`, `HEADER_LEVEL_ONLY` | PO-2024-0162, 149,400.00 |
+| 4 | INV-004 | No invoice number, and sums that do not add up. An Acme invoice that prints no invoice number. Its line adds up to 45,000.00 but the taxable value printed is 45,500.00, and 45,500.00 plus 8,100.00 GST is not the 54,000.00 printed. The missing number alone blocks, and sums that do not add up are never paid automatically. Needs attention; PO-2024-0153 keeps its 45,000. | needs_attention | `MISSING_INVOICE_NUMBER`, `LINE_SUM_MISMATCH`, `TAX_SUM_MISMATCH`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0153, 45,000.00 |
+| 5 | INV-006 | Warnings only: future and unclear date, no currency. Saffron bills 8 paper shredders against PO-2024-0163. The invoice prints no GSTIN, no address and no currency, and is dated 03/04/2030: in the future, and nothing on the page says whether that is 3 April or 4 March. Saffron is still identified by its bank account and name. Each of these is a warning and none blocks, so it is approved with the warnings shown. | approved | `DATE_IN_FUTURE`, `DATE_AMBIGUOUS`, `PO_MATCHED`, `CURRENCY_NOT_READ`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0163, 129,000.00 |
+| 6 | INV-008 | Credit note: negative amounts, no date, no total. Acme sends a credit note for 5 returned cable trays: a negative quantity and negative amounts (-3,250.00 plus GST). It prints no date and no grand total either. A credit note is never processed or consumed automatically, and without a total the amounts cannot be checked. Needs attention; the missing date is only a warning. | needs_attention | `MISSING_DATE`, `MISSING_TOTAL`, `NON_POSITIVE_AMOUNT`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0158, 65,000.00 |
+| 7 | INV-010 | International: US invoice, month-first date. A US export invoice in USD printed 11/04/2024. The document is American, so it is read month first as 4 November 2024, not 11 April. Approved; PO-2024-0150 is fully invoiced. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0150, 0.00 |
+| 8 | INV-011 | International: German invoice, decimal comma and VAT. A German invoice in EUR with amounts like 14.994,00, MwSt. 19 % and an IBAN. Read with the comma as the decimal point. Approved; PO-2024-0154 is fully invoiced. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0154, 0.00 |
+| 9 | INV-012 | International: UK invoice, VAT-inclusive prices. A UK invoice in GBP whose prices include 20% VAT, with the VAT shown but no net total. The taxable value 3,300.00 is derived from the total and the VAT. Approved; PO-2024-0155 is fully invoiced. | approved | `TAXABLE_VALUE_DERIVED`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0155, 0.00 |
+| 10 | INV-013 | Supplier not in the vendor master. Lotus Workspace Interiors is not an approved vendor: its GSTIN, bank account and name match nobody. No PO is printed, and no PO can be matched for an unknown vendor. Needs attention: onboard the vendor or refuse the invoice. | needs_attention | `VENDOR_NOT_FOUND`, `PO_NOT_FOUND` | none |
+| 11 | INV-014 | Rejected: suspended vendor. Nova Component Systems is suspended in the vendor master. The invoice is rejected whatever it bills; Jev is never asked. | rejected | `VENDOR_SUSPENDED`, `PO_NOT_FOUND` | none |
+| 12 | INV-015 | GSTIN misprinted. Acme's invoice prints GSTIN 29AACCA1234F0Z5: not a valid GSTIN shape, and not the 29AACCA1234F1Z5 in the vendor master. The bank account and name still point to Acme, but a different tax ID blocks payment until someone confirms who is invoicing. | needs_attention | `TAX_ID_FORMAT_INVALID`, `TAX_ID_MISMATCH`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0153, 45,000.00 |
+| 13 | INV-016 | Bank account matches, name does not. An invoice from 'ZT Office Solutions', with no GSTIN, asks to be paid into Zenith's bank account. Only the bank account matches the vendor master (60 points, more than 80 needed), so the vendor is not identified with confidence. Needs attention: confirm it is Zenith. | needs_attention | `VENDOR_SCORE_LOW`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0156, 255,000.00 |
+| 14 | INV-017 | Vendor found by name only. Orion prints neither its GSTIN nor bank details. The name matches Orion exactly, but a name alone does not prove who is invoicing, so a person must confirm the vendor. Needs attention. | needs_attention | `VENDOR_NAME_ONLY`, `BANK_DETAILS_ABSENT`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0145, 80,000.00 |
+| 15 | INV-018 | Name close to two vendors. 'Nova Component Pvt Ltd', with no GSTIN or bank details, is close to two vendors in the master: Nova Components (approved) and Nova Component Systems (suspended). The process refuses to choose between them. Needs attention. | needs_attention | `VENDOR_AMBIGUOUS`, `PO_NOT_FOUND` | none |
+| 16 | INV-019 | Bank account mismatch. Everything matches except the bank account, which differs from the vendor master. Needs attention as a fraud signal. | needs_attention | `BANK_ACCOUNT_MISMATCH`, `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PO_FULLY_INVOICED` | PO-2024-0147, 25,000.00 |
+| 17 | INV-021 | Duplicate invoice. Acme re-sends invoice ACM/24-25/0187. Rejected as an exact duplicate of step 1. | rejected | `DUPLICATE_EXACT`, `PO_MATCHED`, `OVER_CONSUMPTION`, `QTY_EXCEEDS_ORDERED` | PO-2024-0142, 24,000.00 |
+| 18 | INV-023 | Re-issued under a new number. Acme sends the same 30 laptop stands as step 1, same date and amount, under a new invoice number. The number check passes, but the details match INV-001, so it is held as a suspected duplicate. PO-2024-0142 keeps its 24,000. Run INV-001 first. | needs_attention | `DUPLICATE_SUSPECTED`, `PO_MATCHED`, `OVER_CONSUMPTION`, `QTY_EXCEEDS_ORDERED` | PO-2024-0142, 24,000.00 |
+| 19 | INV-027 | Partial invoice, no PO number: matched by its line. Brightline bills 10 of the 20 monitors on PO-2024-0159 and prints no PO number. Only PO-2024-0159 orders monitors and the description matches exactly, so the code is sure of the line and matches it without Jev. Approved as a partial delivery. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0159, 759,000.00 |
+| 20 | INV-028 | One invoice split between two POs. Brightline bills headsets from PO-2024-0159 and desks from PO-2024-0160 on one invoice and prints both PO numbers. Each line sits on exactly one of the POs, so the invoice is split: 64,000 on PO-2024-0159 and 135,000 on PO-2024-0160. Approved; both balances drop in one step. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0159, 695,000.00 |
+| 21 | INV-029 | PO number of another vendor. Orion quotes PO-2024-0153, which belongs to Acme. The PO is not matched to Orion and nothing is drawn from Acme's PO. Needs attention. | needs_attention | `PO_VENDOR_MISMATCH` | none |
+| 22 | INV-030 | Rejected: cancelled PO. Pixel Print bills business cards against PO-2024-0149, which was cancelled. Rejected; a printed PO is never handed to Jev. | rejected | `PO_CANCELLED` | none |
+| 23 | INV-033 | No PO number: lines found on two POs. Saffron prints no PO number and has three open POs. The invoice bills 10 of 20 chairs and all 30 desk lamps from PO-2024-0162 and 2 of 6 printers from PO-2024-0163. Every line matches one PO line exactly, so the code splits the invoice without asking Jev: 129,000 and 36,000. Approved. | approved | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0162, 149,400.00 |
+| 24 | INV-034 | Jev keeps reworded lines. Kaveri bills 10 'Ergo footrest pad' and 2 'Glass marker board 6ft x 4ft' against PO-2024-0165. They score 74 and 72 against 'Ergonomic footrest' and 'Glass whiteboard (6 x 4 ft)', below the 90 the code needs to be sure, so Jev is asked and confirms both. Approved as a partial delivery. | approved | `PO_MATCHED`, `LINES_MATCHED_BY_JEV`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0165, 175,000.00 |
+| 25 | INV-035 | An ambiguous line: Jev is not confident, so a person decides. Kaveri bills 12 'Meeting table wire tray' against PO-2024-0166. The code's best text match is the meeting table (score 72), so it is not sure and asks Jev. Jev rejects the table and is not confident (0.80 or less) that the under-desk cable tray is the same item, so the line stays unmatched. Needs attention: match the line by hand. | needs_attention | `LINES_NOT_MATCHED`, `PO_UNUSED` | PO-2024-0166, 311,000.00 |
+| 26 | INV-037 | Freight and a look-alike item on no PO line. Vertex bills 10 wireless headsets, 5 'Monitor' and a freight charge, with no PO number. The headsets match exactly, so the code settles that line without Jev. Jev is asked about the other two: 'Monitor' is not the PO's monitor arm, even at the same price, and freight is on no PO line. Needs attention: those two lines are not on any PO. | needs_attention | `LINES_NOT_MATCHED` | PO-2024-0167, 217,000.00 |
+| 27 | INV-038 | Same item on two POs: oldest first. Kaveri bills 30 stackable visitor chairs with no PO number. Both its open POs order that chair at the same price, so the code is not sure which; Jev says both are right, and the code fills the oldest PO first: 30 chairs from PO-2024-0165. Approved; 10 chairs remain on that PO line. Run INV-034 first. | approved | `PO_MATCHED`, `LINES_MATCHED_BY_JEV`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0165, 97,000.00 |
+| 28 | INV-039 | One line split across two POs, oldest first. Kaveri bills 70 stackable visitor chairs with no PO number. Jev says the line draws on both POs' chair lines; the code fills the oldest PO first: the last 10 chairs of PO-2024-0165, then 60 of PO-2024-0166. Approved; both chair lines are fully used. Run INV-038 first. | approved | `PO_MATCHED`, `LINES_MATCHED_BY_JEV`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0165, 71,000.00 |
+| 29 | INV-040 | Same item on two POs at different prices. Vertex bills 30 cafeteria chairs at 2,800 with no PO number. Both its POs order that chair: at 2,600 (PO-2024-0167, older) and at 2,800 (PO-2024-0168). Jev picks the line with the invoice's price, so the line goes to PO-2024-0168 instead of the code's suggestion. Approved as a partial delivery. | approved | `PO_MATCHED`, `LINES_MATCHED_BY_JEV`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0168, 84,000.00 |
+| 30 | INV-043 | Price raised and the wrong GST rate. Pixel Print bills 400 spiral notebooks at 66.00 against the 60.00 of PO-2024-0157, and charges 18% GST on notebooks the PO priced at 12%. The 26,400.00 fits easily inside the 30,000 balance, so only the line checks catch it. Needs attention; PO-2024-0157 keeps its 30,000. | needs_attention | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY`, `UNIT_PRICE_MISMATCH`, `TAX_RATE_MISMATCH` | PO-2024-0157, 30,000.00 |
+| 31 | INV-044 | Quantity more than what is left, on a split invoice. Saffron bills 14 chairs and 2 microwaves with no PO number. The lines match PO-2024-0162 and PO-2024-0164, but only 10 chairs are left on PO-2024-0162 after INV-033. The quantity check fails, so the invoice needs attention and neither PO is consumed. Run INV-033 first. | needs_attention | `PO_MATCHED`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY`, `QTY_EXCEEDS_ORDERED` | PO-2024-0162, 149,400.00 |
+| 32 | INV-045 | Invoice in the wrong currency. Saffron bills 2 water dispensers against PO-2024-0164, but in USD; the PO is in INR. A currency difference blocks, so the invoice needs attention. | needs_attention | `PO_MATCHED`, `CURRENCY_MISMATCH`, `AMOUNT_WITHIN_TOLERANCE`, `PARTIAL_DELIVERY` | PO-2024-0164, 107,000.00 |
+| 33 | INV-046 | Split invoice with a line that has no unit price. Saffron prints PO-2024-0162 and PO-2024-0164 and bills 4 acoustic panels as a lump sum (24,800.00, no unit price) and 2 water dispensers. Without a unit price the invoice cannot be split between the two POs line by line, so only the totals are compared and the invoice needs attention; neither PO is consumed. | needs_attention | `PO_MATCHED`, `HEADER_LEVEL_ONLY` | PO-2024-0162, 149,400.00 |
 
 The samples follow the pipeline's stages, so the demo walks through one stage at a time: INV-001 (the happy path)
-comes first because later samples re-use its PO, then intake (2-3), validation (4-8), reading prices with tax inside
-and other countries' formats (9-12), vendor (13-18), bank (19-20), duplicates (21-23), PO matching with the PO
-printed (24-32) and without (33), Jev (34-40) and the money checks (41-46). Every finding code the pipeline raises is
-shown by at least one sample, except `EXTRACTION_FAILED` (a model failure), which the tests cover. Three codes are
-defined but no longer raised: `PO_INFERRED`, `PO_AMBIGUOUS` and `PO_SELECTED_BY_JEV`.
+comes first because later samples re-use its invoice and its PO, then intake (2-3), validation (4-6), other countries'
+formats (7-9), vendor (10-15), bank (16), duplicates (17-18), PO matching (19-23), Jev (24-29) and the money
+checks (30-33). Every finding code the
+pipeline raises is shown by at least one sample, except `EXTRACTION_FAILED` (a model failure), which the tests cover.
+Three codes are defined but no longer raised: `PO_INFERRED`, `PO_AMBIGUOUS` and `PO_SELECTED_BY_JEV`.
+
+Several samples carry more than one defect, so that one card can prove more than one rule: INV-004 prints no invoice
+number *and* sums that do not add up, INV-008 is a credit note with no date and no total, and INV-043 raises the unit
+price *and* charges the wrong GST rate. Nothing is stacked onto an invoice whose point is that it passes: INV-001,
+INV-002 and INV-006 each carry exactly what their story needs.
 
 How the rules produce the harder ones:
 
-- **INV-004.** `MISSING_INVOICE_NUMBER` blocks: "No invoice number could be read, so the invoice
-  cannot be approved or checked for duplicates." Every other check passes, so the PO keeps its
-  45,000. A register row is still written with an empty number, but its outcome is
-  `needs_attention`, so it never counts in a later duplicate check.
+- **INV-004.** Two blocks on one invoice. `MISSING_INVOICE_NUMBER`: "No invoice number could be
+  read, so the invoice cannot be approved or checked for duplicates." A register row is still
+  written with an empty number, but its outcome is `needs_attention`, so it never counts in a later
+  duplicate check. On the same page the line adds up to 45,000.00 but the taxable value printed is
+  45,500.00 (`LINE_SUM_MISMATCH`), and 45,500.00 + 8,100.00 GST is not the 54,000.00 printed
+  (`TAX_SUM_MISMATCH`). A total that does not add up may be misread or altered, so it is never paid
+  automatically. The PO keeps its 45,000.
 - **INV-006.** Every problem on this invoice is a warning: the date 03/04/2030 is in the future
   (`DATE_IN_FUTURE`), nothing on the page tells day-first from month-first (`DATE_AMBIGUOUS`, read day
   first), and no currency is printed (`CURRENCY_NOT_READ`). No GSTIN is printed either, but the bank
   account (60) and the name (30) still identify Saffron above 80. Warnings never block, so it is approved.
-- **INV-007.** The lines add up to 45,000.00 but the taxable value printed is 45,500.00
-  (`LINE_SUM_MISMATCH`), and 45,500.00 + 8,100.00 GST is not the 54,000.00 printed (`TAX_SUM_MISMATCH`).
-  Both block: a total that does not add up may be misread or altered, so it is never paid automatically.
-- **INV-009.** No subtotal and no tax amounts are printed. The one line rate, 18, gives
-  59,000 / 1.18 = 50,000.00 (`TAXABLE_VALUE_DERIVED`). Because `prices_include_tax` is true, the
-  unit price is brought to pre-tax the same way: 295 / 1.18 = 250.00, the PO price.
-- **INV-010.** The reading says `date_order` `"MDY"` (a US address and EIN). The quote "Invoice
-  Date: 11/04/2024" reads either way, so code settles it in that order: 4 November 2024, not 11
-  April; the due date 01/03/2025 becomes 3 January 2025. The tolerance floor is USD 10, and 2 percent
-  of 4,500 (90) beats it. The 0 percent line rate matches the PO's.
-- **INV-011.** `decimal_separator` is `","`, so "1.249,50" is 1249.50 and "14.994,00" is 14994.00;
-  without it they would be unreadable, never misread. The VAT ID DE287654321 identifies V008 (it is
-  11 characters, so the GSTIN shape check does not apply), and the printed IBAN in groups of four
-  matches the stored one once spaces are ignored. Nettobetrag + MwSt. = Gesamtbetrag, to the cent.
-- **INV-012.** `prices_include_tax` is true and no net amount is printed, so the taxable value is
-  the total minus the VAT shown: 3,960.00 - 660.00 = 3,300.00 (`TAXABLE_VALUE_DERIVED`). Each unit
-  price is brought to net, 495.00 / 1.20 = 412.50, the PO price. On a gross-price invoice the line
-  amounts are checked against the total, not the taxable value. The date 05/11/2024 is read day first
-  because the reading reports `"DMY"` for a UK invoice.
+- **INV-002.** The document is a scan with no text layer, so it is read by vision. No subtotal and
+  no tax amounts are printed either. The one line rate, 18, gives 2,00,600 / 1.18 = 1,70,000.00
+  (`TAXABLE_VALUE_DERIVED`). Because `prices_include_tax` is true, the unit price is brought to
+  pre-tax the same way: 10,030 / 1.18 = 8,500.00, the PO price.
+- **INV-008.** A credit note with three things wrong at once. The quantity and the amounts are
+  negative (`NON_POSITIVE_AMOUNT`), so it is never processed or consumed automatically. It prints no
+  grand total (`MISSING_TOTAL`, a block: without a total the amounts cannot be checked) and no date
+  (`MISSING_DATE`, only a warning).
+- **INV-010 to INV-012.** Other countries' formats, each read end to end: `date_order` `"MDY"`
+  settles "11/04/2024" as 4 November, not 11 April (INV-010); `decimal_separator` `","` makes
+  "14.994,00" 14994.00 rather than something misread, and a VAT ID of 11 characters is not held to
+  the GSTIN shape (INV-011); a gross-price invoice has its line amounts checked against the total
+  rather than the taxable value, and its taxable value derived from the total and the VAT (INV-012,
+  `TAXABLE_VALUE_DERIVED`). The same rules are also covered by `test_extraction.py` and
+  `test_rules.py`.
 - **INV-015 to INV-018.** Vendor identity: tax ID 80, bank account 60 and name 30 points, more than 80
   needed. A misprinted GSTIN that differs from the master blocks at any score (INV-015); a bank account
   alone is 60 (INV-016, `VENDOR_SCORE_LOW`); a name alone is never enough (INV-017, `VENDOR_NAME_ONLY`);
@@ -1732,28 +1813,44 @@ How the rules produce the harder ones:
 - **INV-021.** The same normalised number as the approved INV-001: `DUPLICATE_EXACT`, in the reject
   set, so `rejected`. Report-only mode means the amount stage still runs and also reports the
   over-consumption (36,000 against the 24,000 left).
-- **INV-025.** After step 24 the PO has 0 left, so the tolerance is the 500 floor. The variance is
-  12,000, beyond it: `OVER_CONSUMPTION`. The line has 50 invoiced already, and 50 + 10 is more than
-  the 50 ordered: `QTY_EXCEEDS_ORDERED`.
-- **INV-034 to INV-040.** Jev is asked only about lines the code is not sure of (best text score 90 or
-  less, coverage under 80, or another PO line at 70 or more). INV-037 shows both sides on one invoice:
-  the headsets are settled by the code, while Jev rejects "Monitor" (the PO orders a monitor arm at the
-  same price) and the freight line. INV-040 shows Jev using the price: the chair is on both POs, and
-  only the line at the invoice's price is right.
-- **INV-041.** The tolerance on 98,000 is max(1,960, 500) = 1,960. The variance is 1,000, inside
-  it. The message says so: "The taxable value 99,000.00 exceeds the 98,000.00 left on PO-2024-0151
-  by 1,000.00, within the 1,960.00 tolerance." The unit price is 1.02 percent above the PO price,
-  inside the 2 percent band. The PO ends `fully_invoiced` at -1,000.00, and the summary says so:
-  "Approved; PO-2024-0151 is now fully invoiced, 1,000.00 over its balance and within the 1,960.00
-  tolerance."
+- **INV-023.** The same vendor, date and taxable value as INV-001 under a new number: the number
+  check passes, so it is not an exact duplicate, but the details match and it is held
+  (`DUPLICATE_SUSPECTED`). Report-only mode means the amount stage still runs, and it reports the
+  over-consumption too: 36,000 against the 24,000 INV-001 left on the PO.
+- **INV-034 and INV-035.** Jev is asked only about lines the code is not sure of (best text score 90
+  or less, coverage under 80, or another PO line at 70 or more). The pair shows both answers. On
+  INV-034 Jev confirms two reworded lines ("Ergo footrest pad" scores 74 against "Ergonomic
+  footrest") and the invoice is approved. On INV-035 Jev rejects the code's best guess and is not
+  confident about anything else, so the line stays unmatched (`LINES_NOT_MATCHED`), the printed PO
+  gets no line (`PO_UNUSED`) and a person decides.
+- **INV-043.** Two line checks on one invoice, both inside the PO balance, so only the line
+  comparison catches them. The unit price 66.00 is 10 percent above the 60.00 of PO-2024-0157,
+  beyond the 2 percent band (`UNIT_PRICE_MISMATCH`), and the invoice charges 18 percent GST on
+  notebooks the PO priced at 12 percent (`TAX_RATE_MISMATCH`). The 26,400.00 sits well inside the
+  30,000 left, so the amount check alone would have passed it. An invoice that lands just over a
+  PO balance but inside tolerance no longer has a sample; `test_rules.py` covers that wording.
 
 ## 11. Design decisions
 
-**Why one model call, not several?**
+**Why one model call to read, and not several?**
 Reading a document of any layout, including a scan or a photo, is the one job that needs a model.
 Everything after it is comparison and arithmetic on known values, which code does exactly,
 instantly and for free. One call also means one cost per invoice, one place to fail, and one point
 to retry.
+
+**Why is there a second model at all?**
+One judgement after the reading is not arithmetic: is "Ergo footrest pad" the same item as
+"Ergonomic footrest"? That is language, and a text ratio gets it wrong in both directions: 74 for
+two names of one item, 100 for "Monitor" against "Monitor arm". So the code settles the lines it
+can be sure of and hands the rest to Jev, an evaluation model that answers a yes/no question with a
+probability instead of text. A probability can be thresholded, so "held because 0.63 fell between
+the bands" is auditable in a way "the model said maybe" is not; the questions are independent, so
+no answer can drag another; and the answer cannot be malformed, so there is no parsing step to
+fail. Jev picks PO lines and nothing else. It is shown unit prices, because two PO lines can order
+the same chair at two prices and only the invoice's price tells them apart, but it does no
+arithmetic, allocates no quantity and decides no outcome. Every failure mode (error, timeout, no
+recording, an unconfident answer) leaves the line unmatched, which blocks: no Jev failure can
+approve an invoice.
 
 **Why do rules decide, and not the model?**
 The same invoice must get the same answer every time, including in a live demo. A finance user
@@ -1804,7 +1901,7 @@ still decides the outcome. Nothing is approved because later checks passed.
 Approving means reading a PO's balance or the approved invoices and then writing. Two concurrent
 runs that share that data could both read the same state and both approve. That data is always one
 vendor's, so runs of different vendors never race, and the slow part (the model call) touches no
-shared data at all. A lock per vendor around stages 4 to 8 removes the race while unrelated
+shared data at all. A lock per vendor around stages 5 to 9 removes the race while unrelated
 invoices, and every extraction, run in parallel.
 
 **Why two extraction models (`InvoiceRead` and `InvoiceExtraction`)?**
@@ -1823,14 +1920,18 @@ document block (and a PNG or JPEG as an image block), with the same prompt. That
 clean PDFs, scans and photos. Intake only tells the model, in the source hint, whether the PDF has a
 text layer.
 
-**Why an inferred PO needs two signals to approve?**
-One signal can be a coincidence: one open PO that does not match the amount, or an amount that
-happens to equal a balance. Two independent signals agreeing is strong evidence. With one, the PO
-is still shown as the likely candidate, but payment needs a person.
+**Why do the lines pick the PO, and never the amount?**
+An earlier design weighed signals: one open PO, an amount close to a balance, matching lines. The
+rule sets contradicted each other as soon as an invoice touched more than one PO, and an amount
+that happens to equal a balance is a coincidence, not evidence. Now there is one rule for any
+number of POs: the lines decide which POs an invoice bills, and the amount is only a check
+afterwards, in stage 7. A printed PO number restricts the search to that PO rather than selecting
+it, so a line that fits none of the printed POs is held instead of paid against a PO the vendor
+never named.
 
-**Why can a mistyped PO reference not be inferred?**
+**Why can a mistyped PO reference not be replaced by a guess?**
 If the invoice prints something that looks like a PO number but does not resolve, the vendor meant
-a specific PO. Silently replacing it with an inferred one could bill the wrong commitment. A person
+a specific PO. Silently matching it to a different one could bill the wrong commitment. A person
 confirms it.
 
 **Why SQLite, and why exact decimals?**
@@ -1874,15 +1975,20 @@ live adapter is tested with a stub client in place of the SDK client.
 |---|---|
 | `conftest.py` | Test settings (temp database, recorded mode, no key) and fixtures: `rules` (default tolerance), `adapter`, `registry` (entities on freshly reset seed data), `client` (an HTTP client on the app with its lifespan running). Helpers build readings from a sample's recording with fields changed. |
 | `test_extraction.py` | Amount and date parsing cases; decimal-comma amounts (1.249,50, 1 234,56) and Swiss apostrophes; the printed date settling day/month order (month first on a US reading, ambiguous flagged, a quote about another date ignored, an empty value kept empty); month-name dates; conversion of blanks and Indian grouping; an unknown document in recorded mode gives `EXTRACTION_FAILED`. |
-| `test_recorded.py` | Sample rows carry the PDF bytes, digest and reading after a reset and after startup seeds an empty table; a sample run works with every seed-folder read made to fail; a sample's exact bytes under another name replay to its normal outcome; listing samples never selects `samples.pdf` or `samples.reading` (checked on the emitted SQL); the sample route gives 404 for an unknown sample, and INV-024 runs straight after a reset (approved, PO-2024-0142 left at 36,000.00); that route sends exactly one samples query (`id` and `pdf`, no join), no `runs` query, and never reads `reading`. |
+| `test_recorded.py` | Sample rows carry the PDF bytes, digest and reading after a reset and after startup seeds an empty table; a sample run works with every seed-folder read made to fail; a sample's exact bytes under another name replay to its normal outcome; listing samples never selects `samples.pdf` or `samples.reading` (checked on the emitted SQL); the sample route gives 404 for an unknown sample, and INV-028 runs straight after a reset (approved, PO-2024-0159 left at 805,000.00); that route sends exactly one samples query (`id` and `pdf`, no join), no `runs` query, and never reads `reading`. |
 | `test_schema.py` | `InvoiceRead`'s JSON schema is closed and fully required; every recorded reading validates; the live adapter's request shape (document and image blocks, cache marker), using a stub client; refusal, truncation, missing or unparseable output raise; a rate limit is retried once; a second connection failure raises; status errors carry the status. |
 | `test_rules.py` | Validation (clean invoice, missing values, future date and bad GSTIN, sum mismatches, taxable value derived from the rate and from tax amounts); tolerance (2 percent with a floor, both sides of the boundary, an overage inside tolerance stated in numbers, the floor when nothing is left); partial invoices; unit price, quantity, tax rate and currency checks; the header-level fallback; the decision's ordering and outcome; the PO update on approval. |
 | `test_vendor.py` | Tax ID wins; bank account identifies without a tax ID; name alone blocks; close names are ambiguous; an unknown supplier is not found; the suspended look-alike is blocked; a changed bank account. |
-| `test_order.py` | Explicit references (also in a line description and as a bare number); unknown, other vendor's and cancelled POs; a fully invoiced PO still matches; inference with several signals, with one signal (blocks), with two qualifying POs (ambiguous), and with an unknown vendor; line mapping by description at a wrong price; consumption moves the status and balance; a reset restores seeded consumption. |
+| `test_order.py` | Explicit references (also in a line description and as a bare number); unknown, other vendor's and cancelled POs; a fully invoiced PO still matches; the candidate pool with no PO printed (open POs, dated on or before the invoice, newest first, capped) and with an unknown vendor; line mapping by description and by price on a one-line PO; consumption moves the status and balance; a reset restores seeded consumption. |
 | `test_duplicate.py` | Same number is exact; a changed suffix is only suspected; the same lines on another date are suspected; a different amount or vendor is not a duplicate; rejected invoices do not count. |
-| `test_pipeline.py` | The whole golden scenario (all 46 samples) in recorded mode; detailed checks on INV-041, INV-009 and INV-004; the SSE stream to `done` and the exact wire keys; history, orders and samples; an out-of-order sample gets 409; reset is rate limited; an unknown run gets 404; uploads run the pipeline; unusable files are rejected at intake; a document named `INV-001.pdf` whose bytes differ from the sample's gets `EXTRACTION_FAILED` with the recorded-mode sentence; an empty outcome filter; the decision step stores no reasons and the detail's reasons are derived from the steps; the derived reasons for INV-001, INV-025 and INV-021 equal what `decide` returned, no stored step data holds `reasons` and the `runs` table has no `reasons` column; a run stores only the vendor, PO and invoice ids and history resolves the name, number and amount through them, for all twenty samples; a reset clears the register and the next run resolves again; a crashing stage ends the run as an error with no vendor, invoice, number or amount; a crash after the PO stage keeps the findings gathered before it; rejected and unrecorded runs resolve to nulls; the decision step's data holds only `update`; the `runs` table has no `usage` column; history `tokens` equals the extraction step's usage and is null for a run rejected at intake; the Run entity reads usage from extraction steps for many runs at once and for one run's detail. |
+| `test_pipeline.py` | The whole golden scenario (every sample of `samples.json`, in step order) in recorded mode, with the steps checked contiguous; detailed checks on INV-002 and INV-004; the SSE stream to `done` and the exact wire keys; history, orders and samples; an out-of-order sample gets 409; reset is rate limited; an unknown run gets 404; uploads run the pipeline; unusable files are rejected at intake; a document named `INV-001.pdf` whose bytes differ from the sample's gets `EXTRACTION_FAILED` with the recorded-mode sentence; an empty outcome filter; the decision step stores no reasons and the detail's reasons are derived from the steps; the derived reasons for INV-001, INV-023 and INV-021 equal what `decide` returned, no stored step data holds `reasons` and the `runs` table has no `reasons` column; a run stores only the vendor, PO and invoice ids and history resolves the name, number and amount through them, for every sample; a reset clears the register and the next run resolves again; a crashing stage ends the run as an error with no vendor, invoice, number or amount; a crash after the PO stage keeps the findings gathered before it; rejected and unrecorded runs resolve to nulls; the decision step's data holds only `update`; the `runs` table has no `usage` column; history `tokens` equals the extraction step's usage and is null for a run rejected at intake; the Run entity reads usage from extraction steps for many runs at once and for one run's detail. |
 | `test_master.py` | Samples are seeded into their table and served from it; startup seeds an empty samples table without a reset; the sample route 404s for a sample removed from the table; a reset restores samples, vendors and POs after a vendor and a PO were created; vendors are listed by id with the exact keys; a vendor is created with the next id, its PAN and normalised fields; every vendor validation failure (422) and a taken tax ID or account (409); a PO is created with the next number across years, the vendor's currency and default unit and tax; the date defaults to today; every PO validation failure (404, 409, 422). |
-| `test_manual.py` | A typed INV-001 is approved with the same codes as the sample and leaves 24,000.00; typed again it is an exact duplicate; a wrong bank account and a missing number need attention; an empty body runs and needs attention; unknown keys and body limits give 422; the run shows mode `manual`, null tokens, intake skipped and nine steps; a vendor and PO created over HTTP are used by a typed invoice, which is approved and lowers the new PO's balance. |
+| `test_manual.py` | A typed INV-001 is approved with the same codes as the sample and leaves 24,000.00; typed again it is an exact duplicate; a wrong bank account and a missing number need attention; an empty body runs and needs attention; unknown keys and body limits give 422; the run shows mode `manual`, null tokens, intake skipped and ten steps; a vendor and PO created over HTTP are used by a typed invoice, which is approved and lowers the new PO's balance. |
+| `test_assist.py` | Jev settings and the trigger; building the request (the whole invoice without bank details or tax IDs, every pool PO in full, the code's conclusions); the recordings file and its request digest; reading the confidence bands; and the pipeline's fallback when Jev errors, times out or has no recording. |
+| `test_jev_triggers.py` | One case per condition for *when* the PO stage hands a line to Jev and when it must not, using a spy that answers 0.02 to everything: which invoice lines are asked about, and which PO lines are offered. No model is called. |
+| `test_jev_real_world.py` | Real-world invoice wording against real-world POs: each scenario creates its own vendor and POs over the API, enters an invoice by hand, and sets Jev's answers by PO-line label, then checks whether the code settled the line itself or asked, and how the invoice ended. |
+| `test_openai.py` | The OpenAI adapter against a stub client: request construction (developer message, cache breakpoint and key, `store=False`, document vs image block), token normalisation, and how the provider is chosen from the keys and `LLM_PROVIDER`. |
+| `test_typesafe.py` | The **real** TypeSafe adapter and SDK driven against a fake TypeSafe server over an injected transport, so the SDK's own serialisation is exercised: what Jev receives, and how its answers are read back. |
 | `test_regressions.py` | One test per defect found in review, each failing before its fix: credit notes blocked; consumption refuses non-positive amounts; malformed or unknown PO numbers; a reference without a PO number still infers; the stream never shows a finished step as running again; name-only vendor blocks; header-level-only blocks; an approved run's reasons read as a full note; within tolerance but short is a partial; a held invoice re-run is not its own duplicate; signs and European number forms; the strict ISO date branch; a zero-rate line is respected; the summary leads with the reason; server errors retried once; schema failures explain the likely stop reason; `max_tokens` is capped; odd upload names; a failing failure handler still closes the stream; a mistyped reference beats a PO number in a description. |
 
 ---
@@ -1891,24 +1997,28 @@ live adapter is tested with a stub client in place of the SDK client.
 
 **One invoice for several POs**
 
-- An invoice is split between POs only when it prints their PO numbers. With no PO number printed, lines that
-  belong to different POs are never split by inference; the run needs attention.
-- A split needs every line on exactly one of the POs. A freight or discount line that is on no PO, or an item
-  ordered on two of the POs, holds the invoice for a person.
+- An invoice is split between POs whenever its lines land on more than one, whether or not the PO numbers are
+  printed (INV-028 prints both; a vendor's open POs are searched by line when none is printed). What a split needs is every line settled: a freight or
+  discount line that is on no PO line holds the whole invoice for a person.
+- One invoice line may draw on several PO lines only when they order the same item (near-identical descriptions
+  and the same numbers). Jev choosing several different items holds the line instead.
 - The run list and the invoice register show the first PO number only; both balances are updated.
 
 Stated as they are.
 
 **Not verified**
 
-- **The live model has been run on the 24 samples only** (`gpt-6-luna`, low effort, 2026-11-13). All 24
-  give their expected outcome. How well it reads real invoices, photos and unusual layouts is unverified.
+- **The live model has been run only on the samples that existed on 2026-11-13** (`gpt-6-luna`,
+  low effort, through the OpenAI Responses API). All of them gave their expected outcome, and two
+  were compared field by field with the answer key. There are now 33 samples, so the current set
+  has not all been run live. How well it reads real invoices, photos and unusual layouts is
+  unverified.
 - The recordings that recorded mode replays were generated from the same specification as the PDFs.
   They show what a correct reading looks like, not what the model produces.
 
 **Recorded mode**
 
-- A document is matched to a recording **by its exact bytes** (SHA-256). Only the fourteen sample
+- A document is matched to a recording **by its exact bytes** (SHA-256). Only the 33 sample
   PDFs, under any name, have one. Any other document, including a re-saved or re-scanned copy of a
   sample, ends as "needs attention" with `EXTRACTION_FAILED` ("no recorded reading matches this
   document; ...").
@@ -1941,7 +2051,6 @@ Stated as they are.
 - An amount written with the Indian "/-" ending, such as `1,200/-`, is read as negative (-1200),
   because a minus sign after the number marks it negative. The prompt asks the model to copy amounts
   as printed, so such an invoice would end with `NON_POSITIVE_AMOUNT`.
-- One invoice maps to one PO. Invoices spanning several POs are not supported.
 - Two-way match only (invoice against PO). There is no goods receipt (three-way match).
 - One buyer. The buyer's name and tax ID are read but not checked.
 
@@ -1961,7 +2070,10 @@ Stated as they are.
 
 **Running it**
 
-- **Not hosted.** It runs on a local machine only.
+- **Deployment config exists but is not proof of a running service.** `backend/Dockerfile` and
+  `backend/railway.json` (healthcheck `/v1/admin/meta`) deploy the API to Railway, and
+  `frontend/vercel.json` serves the frontend on Vercel, rewriting `/v1` to the Railway host. Check
+  the URL before relying on it; otherwise it runs on a local machine.
 - No authentication. Anyone who can reach the backend can upload, read every run, and reset all
   data. The reset rate limit (once per 10 seconds) is kept in memory.
 - The vendor locks, the event bus and the task list live in one process. Running the backend with

@@ -436,6 +436,38 @@ class _Helper:
                 no_date=True,
                 no_total=True,
             ),
+            # Other countries' number, date and tax formats.
+            _Types.InvoiceSpec(
+                "INV-010",
+                "V007",
+                "GP-10442",
+                date(2024, 11, 4),
+                "PO-2024-0150",
+                (_Types.LineSpec("Precision bearing 6204-2RS", "BRG-6204", 100, "pcs", Decimal(45)),),
+                "C",
+                country="US",
+            ),
+            _Types.InvoiceSpec(
+                "INV-011",
+                "V008",
+                "KI-2024-0418",
+                date(2024, 11, 14),
+                "PO-2024-0154",
+                (_Types.LineSpec("Torque wrench set 1/2 in.", "DS-1250", 12, "Stk.", Decimal("1249.50")),),
+                "A",
+                country="DE",
+            ),
+            _Types.InvoiceSpec(
+                "INV-012",
+                "V009",
+                "HF-3317",
+                date(2024, 11, 5),
+                "PO-2024-0155",
+                (_Types.LineSpec("Oak display shelving unit", "SHV-OAK", 8, "pcs", Decimal(495)),),
+                "B",
+                inclusive=True,
+                country="GB",
+            ),
             # Stage 3, vendor: who is invoicing.
             _Types.InvoiceSpec(
                 "INV-013",
@@ -515,7 +547,16 @@ class _Helper:
             _Types.InvoiceSpec(
                 "INV-023", first.vendor_id, "ACM/24-25/0236", first.issued, first.po_ref, first.lines, "B"
             ),
-            # Stage 6, PO matching with the PO number printed.
+            # Stage 6, PO matching: no PO number printed, then with the PO number printed.
+            _Types.InvoiceSpec(
+                "INV-027",
+                "V010",
+                "BLI/24-25/0425",
+                date(2024, 11, 29),
+                "",
+                (_Types.LineSpec("Monitor (24 inch IPS)", "8528", 10, "pcs", Decimal(11000)),),
+                "C",
+            ),
             _Types.InvoiceSpec(
                 "INV-028",
                 "V010",
@@ -546,6 +587,20 @@ class _Helper:
                 (_Types.LineSpec("Business cards (box of 100)", "4911", 2000, "box", Decimal("2.50")),),
                 "A",
             ),
+            # No PO number printed: the vendor's open POs are searched by line.
+            _Types.InvoiceSpec(
+                "INV-033",
+                "V011",
+                "SFS/24-25/0071",
+                date(2024, 12, 2),
+                "",
+                (
+                    _Types.LineSpec("Ergonomic mesh task chair", "9401", 10, "pcs", Decimal(7500)),
+                    _Types.LineSpec("LED desk lamp with dimmer", "9405", 30, "pcs", Decimal(1800)),
+                    _Types.LineSpec("Laser printer (A4 mono)", "8443", 2, "pcs", Decimal(18000)),
+                ),
+                "B",
+            ),
             # Jev decides every invoice line the code is not sure about.
             _Types.InvoiceSpec(
                 "INV-034",
@@ -568,6 +623,46 @@ class _Helper:
                 (_Types.LineSpec("Meeting table wire tray", "7326", 12, "pcs", Decimal(900)),),
                 "C",
             ),
+            _Types.InvoiceSpec(
+                "INV-037",
+                "V013",
+                "VWS/24-25/0102",
+                date(2024, 12, 18),
+                "",
+                (
+                    _Types.LineSpec("Wireless headset", "8518", 10, "pcs", Decimal(3200)),
+                    _Types.LineSpec("Monitor", "8528", 5, "pcs", Decimal(2450)),
+                    _Types.LineSpec("Freight & handling", "996511", 1, "lot", Decimal(1500)),
+                ),
+                "A",
+            ),
+            _Types.InvoiceSpec(
+                "INV-038",
+                "V012",
+                "KOI/24-25/0219",
+                date(2024, 12, 14),
+                "",
+                (_Types.LineSpec("Stackable visitor chair", "9401", 30, "pcs", Decimal(2600)),),
+                "A",
+            ),
+            _Types.InvoiceSpec(
+                "INV-039",
+                "V012",
+                "KOI/24-25/0225",
+                date(2024, 12, 16),
+                "",
+                (_Types.LineSpec("Stackable visitor chair", "9401", 70, "pcs", Decimal(2600)),),
+                "B",
+            ),
+            _Types.InvoiceSpec(
+                "INV-040",
+                "V013",
+                "VWS/24-25/0109",
+                date(2024, 12, 20),
+                "",
+                (_Types.LineSpec("Cafeteria chair (polypropylene)", "9401", 30, "pcs", Decimal(2800)),),
+                "B",
+            ),
             # Stage 7, amounts: the code checks money and quantities on the matched lines.
             _Types.InvoiceSpec(
                 "INV-043",
@@ -577,6 +672,18 @@ class _Helper:
                 "PO-2024-0157",
                 (_Types.LineSpec("Spiral notebook (A5, ruled)", "4820", 400, "pcs", Decimal(66)),),
                 "B",
+            ),
+            _Types.InvoiceSpec(
+                "INV-044",
+                "V011",
+                "SFS/24-25/0086",
+                date(2024, 12, 6),
+                "",
+                (
+                    _Types.LineSpec("Ergonomic mesh task chair", "9401", 14, "pcs", Decimal(7500)),
+                    _Types.LineSpec("Microwave oven (25 litre)", "8516", 2, "pcs", Decimal(8500)),
+                ),
+                "C",
             ),
             _Types.InvoiceSpec(
                 "INV-045",

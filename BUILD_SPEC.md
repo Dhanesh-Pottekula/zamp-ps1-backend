@@ -486,6 +486,9 @@ written in `backend/data/`; they are the source of truth for values.
 | INV-004 | V001 Acme | (none) | 2024-11-21 | PO-2024-0153 | 25 × Wireless keyboard and mouse combo @ 1,800.00 | 45,500.00 printed (lines total 45,000.00) | CGST 9% 4,050.00 + SGST 9% 4,050.00 | 54,000.00 printed (not 53,600.00) | No invoice number, and sums that do not add up |
 | INV-006 | V011 Saffron | SFS/30-31/0004 | 2030-04-03 | PO-2024-0163 | 8 × Paper shredder (cross-cut) @ 9,500.00 | 76,000.00 | CGST 9% 6,840.00 + SGST 9% 6,840.00 | 89,680.00 | Warnings only: future and unclear date, no currency |
 | INV-008 | V001 Acme | ACM/CN/24-25/009 | (none) | PO-2024-0158 | -5 × Cable management tray (steel) @ 650.00 | -3,250.00 | CGST 9% -292.50 + SGST 9% -292.50 | (none) | Credit note: negative amounts, no date, no total |
+| INV-010 | V007 Global | GP-10442 | 2024-11-04 | PO-2024-0150 | 100 × Precision bearing 6204-2RS @ 45.00 | 4,500.00 | none | 4,500.00 | International: US invoice, month-first date |
+| INV-011 | V008 Kessler | KI-2024-0418 | 2024-11-14 | PO-2024-0154 | 12 × Torque wrench set 1/2 in. @ 1.249,50 | 14.994,00 | MwSt. 19% 2.848,86 | 17.842,86 | International: German invoice, decimal comma and VAT |
+| INV-012 | V009 Harbour | HF-3317 | 2024-11-05 | PO-2024-0155 | 8 × Oak display shelving unit @ 495.00 | (none) | VAT 20% 660.00 | 3,960.00 | International: UK invoice, VAT-inclusive prices |
 | INV-013 | Lotus Workspace Interiors Pvt Ltd | LWS/2024/117 | 2024-11-26 | none | 12 × Workstation partition panel @ 4,800.00 | 57,600.00 | CGST 9% 5,184.00 + SGST 9% 5,184.00 | 67,968.00 | Supplier not in the vendor master |
 | INV-014 | V006 Nova | NCS/24-25/0312 | 2024-12-10 | none | 50 × Proximity sensor M12 (PNP) @ 640.00 | 32,000.00 | IGST 18% 5,760.00 | 37,760.00 | Rejected: suspended vendor |
 | INV-015 | V001 Acme | ACM/24-25/0240 | 2024-11-24 | PO-2024-0153 | 10 × Wireless keyboard and mouse combo @ 1,800.00 | 18,000.00 | CGST 9% 1,620.00 + SGST 9% 1,620.00 | 21,240.00 | GSTIN misprinted |
@@ -495,12 +498,19 @@ written in `backend/data/`; they are the source of truth for values.
 | INV-019 | V005 Pixel | PP/2024/0456 | 2024-11-11 | PO-2024-0147 | 5000 × Product brochure (A4 colour) @ 5.00 | 25,000.00 | CGST 9% 2,250.00 + SGST 9% 2,250.00 | 29,500.00 | Bank account mismatch |
 | INV-021 | V001 Acme | ACM/24-25/0187 | 2024-11-04 | PO-2024-0142 | 30 × Laptop stand (adjustable aluminium) @ 1,200.00 | 36,000.00 | CGST 9% 3,240.00 + SGST 9% 3,240.00 | 42,480.00 | Duplicate invoice |
 | INV-023 | V001 Acme | ACM/24-25/0236 | 2024-11-04 | PO-2024-0142 | 30 × Laptop stand (adjustable aluminium) @ 1,200.00 | 36,000.00 | CGST 9% 3,240.00 + SGST 9% 3,240.00 | 42,480.00 | Re-issued under a new number (INV-001's details) |
+| INV-027 | V010 Brightline | BLI/24-25/0425 | 2024-11-29 | none | 10 × Monitor (24 inch IPS) @ 11,000.00 | 1,10,000.00 | CGST 9% 9,900.00 + SGST 9% 9,900.00 | 1,29,800.00 | Partial invoice, no PO number: matched by its line |
 | INV-028 | V010 Brightline | BLI/24-25/0431 | 2024-11-30 | PO-2024-0159 / PO-2024-0160 | 20 × Wireless headset @ 3,200.00; 15 × Height-adjustable office desk @ 9,000.00 | 1,99,000.00 | CGST 9% 17,910.00 + SGST 9% 17,910.00 | 2,34,820.00 | One invoice split between two POs |
 | INV-029 | V004 Orion | OL-INV-7802 | 2024-11-23 | PO-2024-0153 | 1 × Freight - Bengaluru to Chennai (November) @ 45,000.00 | 45,000.00 | IGST 18% 8,100.00 | 53,100.00 | PO number of another vendor |
 | INV-030 | V005 Pixel | PPS/24-25/0398 | 2024-12-11 | PO-2024-0149 | 2000 × Business cards (box of 100) @ 2.50 | 5,000.00 | CGST 9% 450.00 + SGST 9% 450.00 | 5,900.00 | Rejected: cancelled PO |
+| INV-033 | V011 Saffron | SFS/24-25/0071 | 2024-12-02 | none | 10 × Ergonomic mesh task chair @ 7,500.00; 30 × LED desk lamp with dimmer @ 1,800.00; 2 × Laser printer (A4 mono) @ 18,000.00 | 1,65,000.00 | CGST 9% 14,850.00 + SGST 9% 14,850.00 | 1,94,700.00 | No PO number: lines found on two POs |
 | INV-034 | V012 Kaveri | KOI/24-25/0210 | 2024-12-12 | PO-2024-0165 | 10 × Ergo footrest pad @ 1,400.00; 2 × Glass marker board 6ft x 4ft @ 12,500.00 | 39,000.00 | CGST 9% 3,510.00 + SGST 9% 3,510.00 | 46,020.00 | Jev keeps reworded lines |
 | INV-035 | V012 Kaveri | KOI/24-25/0214 | 2024-12-13 | PO-2024-0166 | 12 × Meeting table wire tray @ 900.00 | 10,800.00 | CGST 9% 972.00 + SGST 9% 972.00 | 12,744.00 | An ambiguous line: Jev is not confident, so a person decides |
+| INV-037 | V013 Vertex | VWS/24-25/0102 | 2024-12-18 | none | 10 × Wireless headset @ 3,200.00; 5 × Monitor @ 2,450.00; 1 × Freight & handling @ 1,500.00 | 45,750.00 | CGST 9% 4,117.50 + SGST 9% 4,117.50 | 53,985.00 | Freight and a look-alike item on no PO line |
+| INV-038 | V012 Kaveri | KOI/24-25/0219 | 2024-12-14 | none | 30 × Stackable visitor chair @ 2,600.00 | 78,000.00 | CGST 9% 7,020.00 + SGST 9% 7,020.00 | 92,040.00 | Same item on two POs: oldest first |
+| INV-039 | V012 Kaveri | KOI/24-25/0225 | 2024-12-16 | none | 70 × Stackable visitor chair @ 2,600.00 | 1,82,000.00 | CGST 9% 16,380.00 + SGST 9% 16,380.00 | 2,14,760.00 | One line split across two POs, oldest first |
+| INV-040 | V013 Vertex | VWS/24-25/0109 | 2024-12-20 | none | 30 × Cafeteria chair (polypropylene) @ 2,800.00 | 84,000.00 | CGST 9% 7,560.00 + SGST 9% 7,560.00 | 99,120.00 | Same item on two POs at different prices |
 | INV-043 | V005 Pixel | PP/2024/0502 | 2024-11-24 | PO-2024-0157 | 400 × Spiral notebook (A5, ruled) @ 66.00 | 26,400.00 | CGST 9% 2,376.00 + SGST 9% 2,376.00 | 31,152.00 | Price raised and the wrong GST rate |
+| INV-044 | V011 Saffron | SFS/24-25/0086 | 2024-12-06 | none | 14 × Ergonomic mesh task chair @ 7,500.00; 2 × Microwave oven (25 litre) @ 8,500.00 | 1,22,000.00 | CGST 9% 10,980.00 + SGST 9% 10,980.00 | 1,43,960.00 | Quantity more than what is left, on a split invoice |
 | INV-045 | V011 Saffron | SFS/24-25/0097 | 2024-12-12 | PO-2024-0164 | 2 × Water dispenser (hot and cold) @ 14,000.00 | 28,000.00 | CGST 9% 2,520.00 + SGST 9% 2,520.00 | 33,040.00 | Invoice in the wrong currency |
 | INV-046 | V011 Saffron | SFS/24-25/0102 | 2024-12-13 | PO-2024-0162 / PO-2024-0164 | 4 × Acoustic partition panel @ (no unit price); 2 × Water dispenser (hot and cold) @ 14,000.00 | 52,800.00 | CGST 9% 4,752.00 + SGST 9% 4,752.00 | 62,304.00 | Split invoice with a line that has no unit price |
 
@@ -508,11 +518,11 @@ Each PDF prints the bank details from `vendors.csv`, except INV-019 (another acc
 (none printed). The samples are ordered by the stage that decides them (intake, validation, vendor, bank,
 duplicate, PO, Jev, amounts); INV-001 runs first because later samples re-use its invoice and its PO. Some invoices
 carry more than one defect so that one sample proves more than one rule (INV-004, INV-008, INV-043). The vendor
-master and the PO register are deliberately larger than the sample set. V007, V008 and V009 have no sample now;
-the reading rules they showed (month-first dates, decimal commas, gross prices) are still tested in
-`backend/tests/test_extraction.py` and `test_rules.py`. V013 and PO-2024-0167 / 0168 are unused seed data: the rule
-they showed, Jev picking between two POs that order the same item at different prices, has neither a sample nor a
-test since the scenario was cut. INV-003 is password-protected
+master and the PO register are deliberately larger than the sample set, though every vendor now has a sample:
+V007, V008 and V009 show the reading rules of other countries (month-first dates, decimal commas, gross
+prices), which `backend/tests/test_extraction.py` and `test_rules.py` also test. V013 and PO-2024-0167 / 0168 are used again by INV-037 and
+INV-040, so Jev picking between two POs that order the same item at different prices has a sample once more.
+INV-003 is password-protected
 (generated with that password, so it is refused at intake). Each PDF has a sibling `INV-NNN.read.json`: the `InvoiceRead` a careful reader would
 produce, with amounts as printed strings (for example `"36,000.00"`). It must validate against `InvoiceRead`.
 

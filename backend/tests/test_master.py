@@ -59,7 +59,7 @@ async def test_startup_seeds_an_empty_samples_table_without_a_reset(client: http
 
     await EntitiesRegistry.Seed.initialize()
 
-    assert stored("SELECT count(*) FROM samples") == [(23,)]
+    assert stored("SELECT count(*) FROM samples") == [(33,)]
     assert stored("SELECT id FROM runs") == [(run_id,)]
 
 
