@@ -58,7 +58,7 @@ async def test_different_amount_or_vendor_is_not_a_duplicate(
 ) -> None:
     await register(registry, adapter)
 
-    other_amount = await registry.DuplicateStage.run("V001", extraction("INV-024"), Decimal("24000.00"))
+    other_amount = await registry.DuplicateStage.run("V001", extraction("INV-015"), Decimal("18000.00"))
     other_vendor = await registry.DuplicateStage.run("V002", extraction("INV-001"), TAXABLE)
 
     assert other_amount.verdict == "none"

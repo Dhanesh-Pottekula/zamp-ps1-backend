@@ -4,10 +4,11 @@
     "outcome": "approved",
     "codes": [
       "VENDOR_IDENTIFIED",
+      "BANK_ACCOUNT_VERIFIED",
+      "NO_DUPLICATE",
       "PO_MATCHED",
       "AMOUNT_WITHIN_TOLERANCE",
-      "PARTIAL_DELIVERY",
-      "NO_DUPLICATE"
+      "PARTIAL_DELIVERY"
     ],
     "vendor": "V001",
     "po": "PO-2024-0142",
@@ -17,6 +18,11 @@
     "id": "INV-002",
     "outcome": "approved",
     "codes": [
+      "TAXABLE_VALUE_DERIVED",
+      "VENDOR_IDENTIFIED",
+      "BANK_ACCOUNT_VERIFIED",
+      "NO_DUPLICATE",
+      "PO_MATCHED",
       "AMOUNT_WITHIN_TOLERANCE",
       "PO_FULLY_INVOICED"
     ],
@@ -39,19 +45,8 @@
     "outcome": "needs_attention",
     "codes": [
       "MISSING_INVOICE_NUMBER",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE"
-    ],
-    "vendor": "V001",
-    "po": "PO-2024-0153",
-    "left": "45000.00"
-  },
-  {
-    "id": "INV-005",
-    "outcome": "needs_attention",
-    "codes": [
-      "MISSING_DATE",
-      "MISSING_TOTAL",
+      "LINE_SUM_MISMATCH",
+      "TAX_SUM_MISMATCH",
       "VENDOR_IDENTIFIED",
       "BANK_ACCOUNT_VERIFIED",
       "NO_DUPLICATE",
@@ -59,9 +54,9 @@
       "AMOUNT_WITHIN_TOLERANCE",
       "PO_FULLY_INVOICED"
     ],
-    "vendor": "V004",
-    "po": "PO-2024-0146",
-    "left": "82000.00"
+    "vendor": "V001",
+    "po": "PO-2024-0153",
+    "left": "45000.00"
   },
   {
     "id": "INV-006",
@@ -82,26 +77,11 @@
     "left": "129000.00"
   },
   {
-    "id": "INV-007",
-    "outcome": "needs_attention",
-    "codes": [
-      "LINE_SUM_MISMATCH",
-      "TAX_SUM_MISMATCH",
-      "VENDOR_IDENTIFIED",
-      "BANK_ACCOUNT_VERIFIED",
-      "NO_DUPLICATE",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PO_FULLY_INVOICED"
-    ],
-    "vendor": "V003",
-    "po": "PO-2024-0144",
-    "left": "45000.00"
-  },
-  {
     "id": "INV-008",
     "outcome": "needs_attention",
     "codes": [
+      "MISSING_DATE",
+      "MISSING_TOTAL",
       "NON_POSITIVE_AMOUNT",
       "VENDOR_IDENTIFIED",
       "BANK_ACCOUNT_VERIFIED",
@@ -113,62 +93,6 @@
     "vendor": "V001",
     "po": "PO-2024-0158",
     "left": "65000.00"
-  },
-  {
-    "id": "INV-009",
-    "outcome": "approved",
-    "codes": [
-      "TAXABLE_VALUE_DERIVED",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PO_FULLY_INVOICED",
-      "NO_DUPLICATE"
-    ],
-    "vendor": "V005",
-    "po": "PO-2024-0152",
-    "left": "0.00"
-  },
-  {
-    "id": "INV-010",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PO_FULLY_INVOICED",
-      "NO_DUPLICATE"
-    ],
-    "vendor": "V007",
-    "po": "PO-2024-0150",
-    "left": "0.00"
-  },
-  {
-    "id": "INV-011",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PO_FULLY_INVOICED",
-      "NO_DUPLICATE"
-    ],
-    "vendor": "V008",
-    "po": "PO-2024-0154",
-    "left": "0.00"
-  },
-  {
-    "id": "INV-012",
-    "outcome": "approved",
-    "codes": [
-      "TAXABLE_VALUE_DERIVED",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PO_FULLY_INVOICED",
-      "NO_DUPLICATE"
-    ],
-    "vendor": "V009",
-    "po": "PO-2024-0155",
-    "left": "0.00"
   },
   {
     "id": "INV-013",
@@ -187,8 +111,9 @@
     "codes": [
       "VENDOR_IDENTIFIED",
       "VENDOR_SUSPENDED",
-      "PO_NOT_FOUND",
-      "NO_DUPLICATE"
+      "BANK_ACCOUNT_VERIFIED",
+      "NO_DUPLICATE",
+      "PO_NOT_FOUND"
     ],
     "vendor": "V006",
     "po": null,
@@ -256,31 +181,25 @@
     "id": "INV-019",
     "outcome": "needs_attention",
     "codes": [
-      "BANK_ACCOUNT_MISMATCH"
+      "VENDOR_IDENTIFIED",
+      "BANK_ACCOUNT_MISMATCH",
+      "NO_DUPLICATE",
+      "PO_MATCHED",
+      "AMOUNT_WITHIN_TOLERANCE",
+      "PO_FULLY_INVOICED"
     ],
     "vendor": "V005",
     "po": "PO-2024-0147",
     "left": "25000.00"
   },
   {
-    "id": "INV-020",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PO_FULLY_INVOICED",
-      "NO_DUPLICATE"
-    ],
-    "vendor": "V010",
-    "po": "PO-2024-0161",
-    "left": "0.00"
-  },
-  {
     "id": "INV-021",
     "outcome": "rejected",
     "codes": [
+      "VENDOR_IDENTIFIED",
+      "BANK_ACCOUNT_VERIFIED",
       "DUPLICATE_EXACT",
+      "PO_MATCHED",
       "OVER_CONSUMPTION",
       "QTY_EXCEEDS_ORDERED"
     ],
@@ -289,69 +208,22 @@
     "left": "24000.00"
   },
   {
-    "id": "INV-022",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PARTIAL_DELIVERY",
-      "NO_DUPLICATE"
-    ],
-    "vendor": "V001",
-    "po": "PO-2024-0158",
-    "left": "39000.00"
-  },
-  {
     "id": "INV-023",
     "outcome": "needs_attention",
     "codes": [
+      "VENDOR_IDENTIFIED",
+      "BANK_ACCOUNT_VERIFIED",
+      "DUPLICATE_SUSPECTED",
       "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "DUPLICATE_SUSPECTED"
-    ],
-    "vendor": "V001",
-    "po": "PO-2024-0158",
-    "left": "39000.00"
-  },
-  {
-    "id": "INV-024",
-    "outcome": "approved",
-    "codes": [
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PO_FULLY_INVOICED"
-    ],
-    "vendor": "V001",
-    "po": "PO-2024-0142",
-    "left": "0.00"
-  },
-  {
-    "id": "INV-025",
-    "outcome": "needs_attention",
-    "codes": [
       "OVER_CONSUMPTION",
       "QTY_EXCEEDS_ORDERED"
     ],
     "vendor": "V001",
     "po": "PO-2024-0142",
-    "left": "0.00"
+    "left": "24000.00"
   },
   {
-    "id": "INV-026",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PARTIAL_DELIVERY",
-      "NO_DUPLICATE"
-    ],
-    "vendor": "V010",
-    "po": "PO-2024-0159",
-    "left": "284000.00"
-  },
-  {
-    "id": "INV-027",
+    "id": "INV-028",
     "outcome": "approved",
     "codes": [
       "VENDOR_IDENTIFIED",
@@ -363,27 +235,15 @@
     ],
     "vendor": "V010",
     "po": "PO-2024-0159",
-    "left": "174000.00"
-  },
-  {
-    "id": "INV-028",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PARTIAL_DELIVERY",
-      "NO_DUPLICATE"
-    ],
-    "vendor": "V010",
-    "po": "PO-2024-0159",
-    "left": "110000.00"
+    "left": "805000.00"
   },
   {
     "id": "INV-029",
     "outcome": "needs_attention",
     "codes": [
       "VENDOR_IDENTIFIED",
+      "BANK_ACCOUNT_VERIFIED",
+      "NO_DUPLICATE",
       "PO_VENDOR_MISMATCH"
     ],
     "vendor": "V004",
@@ -395,53 +255,13 @@
     "outcome": "rejected",
     "codes": [
       "VENDOR_IDENTIFIED",
-      "PO_CANCELLED",
-      "NO_DUPLICATE"
+      "BANK_ACCOUNT_VERIFIED",
+      "NO_DUPLICATE",
+      "PO_CANCELLED"
     ],
     "vendor": "V005",
     "po": null,
     "left": null
-  },
-  {
-    "id": "INV-031",
-    "outcome": "needs_attention",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "BANK_ACCOUNT_VERIFIED",
-      "NO_DUPLICATE",
-      "PO_NOT_FOUND"
-    ],
-    "vendor": "V011",
-    "po": null,
-    "left": null
-  },
-  {
-    "id": "INV-032",
-    "outcome": "needs_attention",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "BANK_ACCOUNT_VERIFIED",
-      "NO_DUPLICATE",
-      "PO_NOT_FOUND"
-    ],
-    "vendor": "V012",
-    "po": null,
-    "left": null
-  },
-  {
-    "id": "INV-033",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "BANK_ACCOUNT_VERIFIED",
-      "NO_DUPLICATE",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PARTIAL_DELIVERY"
-    ],
-    "vendor": "V011",
-    "po": "PO-2024-0162",
-    "left": "149400.00"
   },
   {
     "id": "INV-034",
@@ -474,120 +294,7 @@
     "left": "311000.00"
   },
   {
-    "id": "INV-036",
-    "outcome": "needs_attention",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "BANK_ACCOUNT_VERIFIED",
-      "NO_DUPLICATE",
-      "LINES_NOT_MATCHED",
-      "PO_UNUSED"
-    ],
-    "vendor": "V010",
-    "po": "PO-2024-0160",
-    "left": "55000.00"
-  },
-  {
-    "id": "INV-037",
-    "outcome": "needs_attention",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "BANK_ACCOUNT_VERIFIED",
-      "NO_DUPLICATE",
-      "LINES_NOT_MATCHED"
-    ],
-    "vendor": "V013",
-    "po": "PO-2024-0167",
-    "left": "217000.00"
-  },
-  {
-    "id": "INV-038",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "BANK_ACCOUNT_VERIFIED",
-      "NO_DUPLICATE",
-      "PO_MATCHED",
-      "LINES_MATCHED_BY_JEV",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PARTIAL_DELIVERY"
-    ],
-    "vendor": "V012",
-    "po": "PO-2024-0165",
-    "left": "97000.00"
-  },
-  {
-    "id": "INV-039",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "BANK_ACCOUNT_VERIFIED",
-      "NO_DUPLICATE",
-      "PO_MATCHED",
-      "LINES_MATCHED_BY_JEV",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PARTIAL_DELIVERY"
-    ],
-    "vendor": "V012",
-    "po": "PO-2024-0165",
-    "left": "71000.00"
-  },
-  {
-    "id": "INV-040",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "BANK_ACCOUNT_VERIFIED",
-      "NO_DUPLICATE",
-      "PO_MATCHED",
-      "LINES_MATCHED_BY_JEV",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PARTIAL_DELIVERY"
-    ],
-    "vendor": "V013",
-    "po": "PO-2024-0168",
-    "left": "84000.00"
-  },
-  {
-    "id": "INV-041",
-    "outcome": "approved",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "PO_FULLY_INVOICED",
-      "NO_DUPLICATE"
-    ],
-    "vendor": "V002",
-    "po": "PO-2024-0151",
-    "left": "-1000.00"
-  },
-  {
-    "id": "INV-042",
-    "outcome": "needs_attention",
-    "codes": [
-      "VENDOR_IDENTIFIED",
-      "PO_MATCHED",
-      "UNIT_PRICE_MISMATCH"
-    ],
-    "vendor": "V002",
-    "po": "PO-2024-0156",
-    "left": "255000.00"
-  },
-  {
     "id": "INV-043",
-    "outcome": "needs_attention",
-    "codes": [
-      "PO_MATCHED",
-      "AMOUNT_WITHIN_TOLERANCE",
-      "TAX_RATE_MISMATCH"
-    ],
-    "vendor": "V005",
-    "po": "PO-2024-0157",
-    "left": "30000.00"
-  },
-  {
-    "id": "INV-044",
     "outcome": "needs_attention",
     "codes": [
       "VENDOR_IDENTIFIED",
@@ -596,11 +303,12 @@
       "PO_MATCHED",
       "AMOUNT_WITHIN_TOLERANCE",
       "PARTIAL_DELIVERY",
-      "QTY_EXCEEDS_ORDERED"
+      "UNIT_PRICE_MISMATCH",
+      "TAX_RATE_MISMATCH"
     ],
-    "vendor": "V011",
-    "po": "PO-2024-0162",
-    "left": "149400.00"
+    "vendor": "V005",
+    "po": "PO-2024-0157",
+    "left": "30000.00"
   },
   {
     "id": "INV-045",
@@ -630,6 +338,6 @@
     ],
     "vendor": "V011",
     "po": "PO-2024-0162",
-    "left": "149400.00"
+    "left": "278400.00"
   }
 ]

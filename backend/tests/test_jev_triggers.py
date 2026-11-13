@@ -200,7 +200,8 @@ async def test_a_line_on_another_po_than_the_printed_one_offers_only_the_printed
 
 
 async def test_the_same_item_on_two_pos_is_asked(client: Any, spy: FakeJev) -> None:
-    await run(client, typed("INV-038"))
+    chairs = line("Stackable visitor chair", "30", "2,600.00")  # ordered on both of Kaveri's open POs
+    await run(client, typed("INV-034", po_reference_text="", invoice_number="KOI/24-25/0219", **totals(chairs)))
 
     keys = {key for _, key in asked(spy)}
     assert {"PO-2024-0165/1", "PO-2024-0166/1"} <= keys

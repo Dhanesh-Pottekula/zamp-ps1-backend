@@ -27,7 +27,7 @@
       "tax_rate_pct": "18"
     }
   ],
-  "subtotal": "45,000.00",
+  "subtotal": "45,500.00",
   "tax_lines": [
     {
       "label": "CGST",
@@ -40,7 +40,7 @@
       "amount": "4,050.00"
     }
   ],
-  "total": "53,100.00",
+  "total": "54,000.00",
   "sources": [
     {
       "field": "invoice_date",
@@ -52,11 +52,11 @@
     },
     {
       "field": "subtotal",
-      "text": "Taxable Value 45,000.00"
+      "text": "Taxable Value 45,500.00"
     },
     {
       "field": "total",
-      "text": "Grand Total (INR) 53,100.00"
+      "text": "Grand Total (INR) 54,000.00"
     },
     {
       "field": "po_reference_text",

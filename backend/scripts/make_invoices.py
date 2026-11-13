@@ -370,24 +370,24 @@ class _Helper:
     @staticmethod
     def invoice_specs() -> list[_Types.InvoiceSpec]:
         """Return the invoices of section 7 in file order."""
-        tray = _Types.LineSpec("Cable management tray (steel)", "7326", 40, "pcs", Decimal(650))
         stand = _Types.LineSpec("Laptop stand (adjustable aluminium)", "9403", 30, "pcs", Decimal(1200))
         first = _Types.InvoiceSpec(
             "INV-001", "V001", "ACM/24-25/0187", date(2024, 11, 4), "PO-2024-0142", (stand,), "A"
         )
         return [
-            # Happy path first: the duplicate and the split-invoice samples later re-use its PO.
+            # Happy path first: the duplicate samples later re-use its invoice and its PO.
             first,
-            # Stage 0, intake: a scanned PDF is read by vision; a password-protected one is refused.
+            # Stage 0, intake: a scanned PDF with tax-inclusive prices is read by vision; a locked one is refused.
             _Types.InvoiceSpec(
                 "INV-002",
                 "V002",
                 "ZT-2024-1105",
                 date(2024, 11, 5),
                 "PO-2024-0143",
-                (_Types.LineSpec("Ergonomic office chair", "9401", 20, "pcs", Decimal(8500)),),
+                (_Types.LineSpec("Ergonomic office chair", "9401", 20, "pcs", Decimal(10030)),),
                 "B",
                 scanned=True,
+                inclusive=True,
             ),
             _Types.InvoiceSpec(
                 "INV-003",
@@ -408,17 +408,8 @@ class _Helper:
                 "PO-2024-0153",
                 (_Types.LineSpec("Wireless keyboard and mouse combo", "8471", 25, "pcs", Decimal(1800)),),
                 "A",
-            ),
-            _Types.InvoiceSpec(
-                "INV-005",
-                "V004",
-                "OL-INV-7815",
-                date(2024, 11, 15),
-                "PO-2024-0146",
-                (_Types.LineSpec("Freight - Bengaluru to Delhi (October)", "996511", 1, "lot", Decimal(82000)),),
-                "C",
-                no_date=True,
-                no_total=True,
+                printed_subtotal=Decimal(45500),
+                printed_total=Decimal(54000),
             ),
             _Types.InvoiceSpec(
                 "INV-006",
@@ -434,17 +425,6 @@ class _Helper:
                 unclear_dates=True,
             ),
             _Types.InvoiceSpec(
-                "INV-007",
-                "V003",
-                "NC/1124/071",
-                date(2024, 11, 14),
-                "PO-2024-0144",
-                (_Types.LineSpec("USB-C docking connector module", "8536", 300, "pcs", Decimal(150)),),
-                "B",
-                printed_subtotal=Decimal(45500),
-                printed_total=Decimal(54000),
-            ),
-            _Types.InvoiceSpec(
                 "INV-008",
                 "V001",
                 "ACM/CN/24-25/009",
@@ -453,48 +433,8 @@ class _Helper:
                 (_Types.LineSpec("Cable management tray (steel)", "7326", -5, "pcs", Decimal(650)),),
                 "A",
                 title="CREDIT NOTE",
-            ),
-            # Reading prices that include tax, and other countries' formats.
-            _Types.InvoiceSpec(
-                "INV-009",
-                "V005",
-                "PP/2024/0489",
-                date(2024, 11, 19),
-                "PO-2024-0152",
-                (_Types.LineSpec("Printed tote bag (cotton)", "4202", 200, "pcs", Decimal(295)),),
-                "B",
-                inclusive=True,
-            ),
-            _Types.InvoiceSpec(
-                "INV-010",
-                "V007",
-                "GP-10442",
-                date(2024, 11, 4),
-                "PO-2024-0150",
-                (_Types.LineSpec("Precision bearing 6204-2RS", "BRG-6204", 100, "pcs", Decimal(45)),),
-                "C",
-                country="US",
-            ),
-            _Types.InvoiceSpec(
-                "INV-011",
-                "V008",
-                "KI-2024-0418",
-                date(2024, 11, 14),
-                "PO-2024-0154",
-                (_Types.LineSpec("Torque wrench set 1/2 in.", "DS-1250", 12, "Stk.", Decimal("1249.50")),),
-                "A",
-                country="DE",
-            ),
-            _Types.InvoiceSpec(
-                "INV-012",
-                "V009",
-                "HF-3317",
-                date(2024, 11, 5),
-                "PO-2024-0155",
-                (_Types.LineSpec("Oak display shelving unit", "SHV-OAK", 8, "pcs", Decimal(495)),),
-                "B",
-                inclusive=True,
-                country="GB",
+                no_date=True,
+                no_total=True,
             ),
             # Stage 3, vendor: who is invoicing.
             _Types.InvoiceSpec(
@@ -570,60 +510,12 @@ class _Helper:
                 "B",
                 bank_swap={"account_number": "77700011122", "bank_code": "YESB0000246", "bank_name": "Yes Bank"},
             ),
-            _Types.InvoiceSpec(
-                "INV-020",
-                "V010",
-                "BLI/24-25/0412",
-                date(2024, 11, 27),
-                "PO-2024-0161",
-                (_Types.LineSpec("Magnetic whiteboard (4 x 3 ft)", "9610", 20, "pcs", Decimal(2400)),),
-                "A",
-                no_bank=True,
-            ),
-            # Stage 5, duplicates: an exact re-send, then a re-issue under a new number.
+            # Stage 5, duplicates: INV-001 re-sent exactly, then re-issued under a new number.
             _Types.InvoiceSpec("INV-021", first.vendor_id, first.number, first.issued, first.po_ref, first.lines, "B"),
-            _Types.InvoiceSpec("INV-022", "V001", "ACM/24-25/0231", date(2024, 11, 25), "PO-2024-0158", (tray,), "A"),
-            _Types.InvoiceSpec("INV-023", "V001", "ACM/24-25/0236", date(2024, 11, 25), "PO-2024-0158", (tray,), "B"),
-            # Stage 6, PO matching with the PO number printed, and a PO used up over several invoices.
             _Types.InvoiceSpec(
-                "INV-024",
-                "V001",
-                "ACM/24-25/0203",
-                date(2024, 11, 12),
-                "PO-2024-0142",
-                (_Types.LineSpec(stand.description, stand.hsn, 20, stand.unit, stand.rate),),
-                "A",
+                "INV-023", first.vendor_id, "ACM/24-25/0236", first.issued, first.po_ref, first.lines, "B"
             ),
-            _Types.InvoiceSpec(
-                "INV-025",
-                "V001",
-                "ACM/24-25/0219",
-                date(2024, 11, 20),
-                "PO-2024-0142",
-                (_Types.LineSpec(stand.description, stand.hsn, 10, stand.unit, stand.rate),),
-                "A",
-            ),
-            _Types.InvoiceSpec(
-                "INV-026",
-                "V010",
-                "BLI/24-25/0418",
-                date(2024, 11, 28),
-                "PO-2024-0159",
-                (
-                    _Types.LineSpec("Business laptop (14 inch)", "8471", 10, "pcs", Decimal(52000)),
-                    _Types.LineSpec("USB-C docking station", "8473", 10, "pcs", Decimal(6500)),
-                ),
-                "B",
-            ),
-            _Types.InvoiceSpec(
-                "INV-027",
-                "V010",
-                "BLI/24-25/0425",
-                date(2024, 11, 29),
-                "",
-                (_Types.LineSpec("Monitor (24 inch IPS)", "8528", 10, "pcs", Decimal(11000)),),
-                "C",
-            ),
+            # Stage 6, PO matching with the PO number printed.
             _Types.InvoiceSpec(
                 "INV-028",
                 "V010",
@@ -654,38 +546,6 @@ class _Helper:
                 (_Types.LineSpec("Business cards (box of 100)", "4911", 2000, "box", Decimal("2.50")),),
                 "A",
             ),
-            _Types.InvoiceSpec(
-                "INV-031",
-                "V011",
-                "SFS/24-25/0068",
-                date(2024, 11, 28),
-                "PO-2024-0999",
-                (_Types.LineSpec("Microwave oven (25 litre)", "8516", 2, "pcs", Decimal(8500)),),
-                "A",
-            ),
-            _Types.InvoiceSpec(
-                "INV-032",
-                "V012",
-                "KOI/24-25/0198",
-                date(2024, 11, 2),
-                "",
-                (_Types.LineSpec("Glass whiteboard (6 x 4 ft)", "9610", 2, "pcs", Decimal(12500)),),
-                "C",
-            ),
-            # No PO number printed: the vendor's open POs are searched by line.
-            _Types.InvoiceSpec(
-                "INV-033",
-                "V011",
-                "SFS/24-25/0071",
-                date(2024, 12, 2),
-                "",
-                (
-                    _Types.LineSpec("Ergonomic mesh task chair", "9401", 10, "pcs", Decimal(7500)),
-                    _Types.LineSpec("LED desk lamp with dimmer", "9405", 30, "pcs", Decimal(1800)),
-                    _Types.LineSpec("Laser printer (A4 mono)", "8443", 2, "pcs", Decimal(18000)),
-                ),
-                "B",
-            ),
             # Jev decides every invoice line the code is not sure about.
             _Types.InvoiceSpec(
                 "INV-034",
@@ -708,94 +568,15 @@ class _Helper:
                 (_Types.LineSpec("Meeting table wire tray", "7326", 12, "pcs", Decimal(900)),),
                 "C",
             ),
-            _Types.InvoiceSpec(
-                "INV-036",
-                "V010",
-                "BLI/24-25/0451",
-                date(2024, 12, 10),
-                "PO-2024-0160",
-                (_Types.LineSpec("Monitor (24 inch IPS)", "8528", 5, "pcs", Decimal(11000)),),
-                "B",
-            ),
-            _Types.InvoiceSpec(
-                "INV-037",
-                "V013",
-                "VWS/24-25/0102",
-                date(2024, 12, 18),
-                "",
-                (
-                    _Types.LineSpec("Wireless headset", "8518", 10, "pcs", Decimal(3200)),
-                    _Types.LineSpec("Monitor", "8528", 5, "pcs", Decimal(2450)),
-                    _Types.LineSpec("Freight & handling", "996511", 1, "lot", Decimal(1500)),
-                ),
-                "A",
-            ),
-            _Types.InvoiceSpec(
-                "INV-038",
-                "V012",
-                "KOI/24-25/0219",
-                date(2024, 12, 14),
-                "",
-                (_Types.LineSpec("Stackable visitor chair", "9401", 30, "pcs", Decimal(2600)),),
-                "A",
-            ),
-            _Types.InvoiceSpec(
-                "INV-039",
-                "V012",
-                "KOI/24-25/0225",
-                date(2024, 12, 16),
-                "",
-                (_Types.LineSpec("Stackable visitor chair", "9401", 70, "pcs", Decimal(2600)),),
-                "B",
-            ),
-            _Types.InvoiceSpec(
-                "INV-040",
-                "V013",
-                "VWS/24-25/0109",
-                date(2024, 12, 20),
-                "",
-                (_Types.LineSpec("Cafeteria chair (polypropylene)", "9401", 30, "pcs", Decimal(2800)),),
-                "B",
-            ),
             # Stage 7, amounts: the code checks money and quantities on the matched lines.
-            _Types.InvoiceSpec(
-                "INV-041",
-                "V002",
-                "ZT-2024-1131",
-                date(2024, 11, 18),
-                "PO-2024-0151",
-                (_Types.LineSpec("Monitor arm (dual, gas spring)", "8302", 40, "pcs", Decimal(2475)),),
-                "C",
-            ),
-            _Types.InvoiceSpec(
-                "INV-042",
-                "V002",
-                "ZT-2024-1150",
-                date(2024, 11, 22),
-                "PO-2024-0156",
-                (_Types.LineSpec("Ergonomic office chair", "9401", 10, "pcs", Decimal(9350)),),
-                "B",
-            ),
             _Types.InvoiceSpec(
                 "INV-043",
                 "V005",
                 "PP/2024/0502",
                 date(2024, 11, 24),
                 "PO-2024-0157",
-                (_Types.LineSpec("Spiral notebook (A5, ruled)", "4820", 500, "pcs", Decimal(60)),),
+                (_Types.LineSpec("Spiral notebook (A5, ruled)", "4820", 400, "pcs", Decimal(66)),),
                 "B",
-            ),
-            _Types.InvoiceSpec(
-                "INV-044",
-                "V011",
-                "SFS/24-25/0086",
-                date(2024, 12, 6),
-                "",
-                (
-                    _Types.LineSpec("Ergonomic mesh task chair", "9401", 14, "pcs", Decimal(7500)),
-                    _Types.LineSpec("Microwave oven (25 litre)", "8516", 2, "pcs", Decimal(8500)),
-                ),
-                "C",
             ),
             _Types.InvoiceSpec(
                 "INV-045",

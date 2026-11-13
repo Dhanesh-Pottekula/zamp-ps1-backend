@@ -10,37 +10,37 @@
   "buyer_name": "Meridian Retail Pvt Ltd",
   "buyer_tax_id": "29AAGCM4567H1Z9",
   "invoice_number": "ACM/24-25/0236",
-  "invoice_date": "2024-11-25",
-  "due_date": "2024-12-25",
+  "invoice_date": "2024-11-04",
+  "due_date": "2024-12-04",
   "currency": "INR",
   "date_order": "DMY",
   "decimal_separator": ".",
-  "po_reference_text": "PO-2024-0158",
+  "po_reference_text": "PO-2024-0142",
   "prices_include_tax": false,
   "lines": [
     {
-      "description": "Cable management tray (steel)",
-      "quantity": "40",
+      "description": "Laptop stand (adjustable aluminium)",
+      "quantity": "30",
       "unit": "pcs",
-      "unit_price": "650.00",
-      "line_amount": "26,000.00",
+      "unit_price": "1,200.00",
+      "line_amount": "36,000.00",
       "tax_rate_pct": "18"
     }
   ],
-  "subtotal": "26,000.00",
+  "subtotal": "36,000.00",
   "tax_lines": [
     {
       "label": "CGST",
       "rate_pct": "9",
-      "amount": "2,340.00"
+      "amount": "3,240.00"
     },
     {
       "label": "SGST",
       "rate_pct": "9",
-      "amount": "2,340.00"
+      "amount": "3,240.00"
     }
   ],
-  "total": "30,680.00",
+  "total": "42,480.00",
   "sources": [
     {
       "field": "invoice_number",
@@ -48,23 +48,23 @@
     },
     {
       "field": "invoice_date",
-      "text": "Dated: 25/11/2024"
+      "text": "Dated: 04/11/2024"
     },
     {
       "field": "due_date",
-      "text": "Payment Due: 25/12/2024"
+      "text": "Payment Due: 04/12/2024"
     },
     {
       "field": "subtotal",
-      "text": "Taxable Value 26,000.00"
+      "text": "Taxable Value 36,000.00"
     },
     {
       "field": "total",
-      "text": "Total Amount Payable (INR) 30,680.00"
+      "text": "Total Amount Payable (INR) 42,480.00"
     },
     {
       "field": "po_reference_text",
-      "text": "Your Order No.: PO-2024-0158"
+      "text": "Your Order No.: PO-2024-0142"
     }
   ]
 }

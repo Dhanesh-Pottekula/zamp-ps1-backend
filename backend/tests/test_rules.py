@@ -323,7 +323,9 @@ def test_a_date_whose_order_the_document_does_not_show_is_flagged(rules: StageRu
 
 def test_gross_price_lines_are_checked_against_the_total(rules: StageRules) -> None:
     gross = extraction(
-        "INV-012",
+        "INV-002",  # prices include tax and no taxable value is printed; the rest is typed in as a UK invoice
+        currency="GBP",
+        total="3,960.00",
         lines=[line(quantity="8", unit_price="495.00", line_amount="3,960.00", tax_rate_pct="20")],
     )
     result = rules.validation.run(gross, TODAY)
@@ -340,7 +342,8 @@ def test_a_foreign_fifteen_character_tax_id_is_not_held_to_the_gstin_shape(rules
 
 def test_two_vat_rates_are_not_added_into_one(rules: StageRules) -> None:
     mixed = extraction(
-        "INV-011",
+        decimal_separator=",",  # a German invoice: 1.234,56
+        currency="EUR",
         lines=[
             line(quantity="10", unit_price="100,00", line_amount="1.000,00", tax_rate_pct="19"),
             line(quantity="10", unit_price="100,00", line_amount="1.000,00", tax_rate_pct="7"),

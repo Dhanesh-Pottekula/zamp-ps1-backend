@@ -20,27 +20,27 @@
   "lines": [
     {
       "description": "Spiral notebook (A5, ruled)",
-      "quantity": "500",
+      "quantity": "400",
       "unit": "pcs",
-      "unit_price": "60.00",
-      "line_amount": "30,000.00",
+      "unit_price": "66.00",
+      "line_amount": "26,400.00",
       "tax_rate_pct": "18"
     }
   ],
-  "subtotal": "30,000.00",
+  "subtotal": "26,400.00",
   "tax_lines": [
     {
       "label": "CGST",
       "rate_pct": "9",
-      "amount": "2,700.00"
+      "amount": "2,376.00"
     },
     {
       "label": "SGST",
       "rate_pct": "9",
-      "amount": "2,700.00"
+      "amount": "2,376.00"
     }
   ],
-  "total": "35,400.00",
+  "total": "31,152.00",
   "sources": [
     {
       "field": "invoice_number",
@@ -56,11 +56,11 @@
     },
     {
       "field": "subtotal",
-      "text": "Taxable Value 30,000.00"
+      "text": "Taxable Value 26,400.00"
     },
     {
       "field": "total",
-      "text": "Total Amount Payable (INR) 35,400.00"
+      "text": "Total Amount Payable (INR) 31,152.00"
     },
     {
       "field": "po_reference_text",

@@ -16,25 +16,19 @@
   "date_order": "DMY",
   "decimal_separator": ".",
   "po_reference_text": "PO-2024-0143",
-  "prices_include_tax": false,
+  "prices_include_tax": true,
   "lines": [
     {
       "description": "Ergonomic office chair",
       "quantity": "20",
       "unit": "pcs",
-      "unit_price": "8,500.00",
-      "line_amount": "1,70,000.00",
+      "unit_price": "10,030.00",
+      "line_amount": "2,00,600.00",
       "tax_rate_pct": "18"
     }
   ],
-  "subtotal": "1,70,000.00",
-  "tax_lines": [
-    {
-      "label": "IGST",
-      "rate_pct": "18",
-      "amount": "30,600.00"
-    }
-  ],
+  "subtotal": "",
+  "tax_lines": [],
   "total": "2,00,600.00",
   "sources": [
     {
@@ -48,10 +42,6 @@
     {
       "field": "due_date",
       "text": "Payment Due: 20/12/2024"
-    },
-    {
-      "field": "subtotal",
-      "text": "Taxable Value 1,70,000.00"
     },
     {
       "field": "total",

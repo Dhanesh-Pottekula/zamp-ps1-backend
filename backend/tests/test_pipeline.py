@@ -47,13 +47,15 @@ STEPS = ["intake", "extraction", "validation", "vendor", "bank", "duplicate", "p
 async def test_golden_scenario_in_recorded_mode(registry: type[EntitiesRegistry]) -> None:
     results = await GoldenRunner.evaluate()
 
-    assert [expected.id for expected, _, _ in results] == [f"INV-{number:03d}" for number in range(1, 47)]
+    scenario = json.loads((DATA / "samples.json").read_text())
+    assert [expected.id for expected, _, _ in results] == [sample["id"] for sample in scenario]
+    assert [sample["step"] for sample in scenario] == list(range(1, len(scenario) + 1))
     assert {expected.id: problems for expected, _, problems in results if problems} == {}
 
 
-async def test_close_amount_embedded_tax_and_missing_number(client: httpx.AsyncClient) -> None:
+async def test_embedded_tax_and_missing_number(client: httpx.AsyncClient) -> None:
     details: dict[str, dict[str, Any]] = {}
-    for sample in ("INV-041", "INV-009", "INV-004"):
+    for sample in ("INV-002", "INV-004"):
         run_id = (await client.post(f"/v1/runs/samples/{sample}")).json()["id"]
         await stream(client, run_id)
         details[sample] = (await client.get(f"/v1/runs/{run_id}")).json()
@@ -61,32 +63,20 @@ async def test_close_amount_embedded_tax_and_missing_number(client: httpx.AsyncC
     reasons = {sample: {reason["code"]: reason for reason in detail["reasons"]} for sample, detail in details.items()}
     orders = {order["po"]: order for order in (await client.get("/v1/orders")).json()["data"]}
 
-    assert [detail["outcome"] for detail in details.values()] == ["approved", "approved", "needs_attention"]
+    assert [detail["outcome"] for detail in details.values()] == ["approved", "needs_attention"]
     assert not {"UNIT_PRICE_MISMATCH", "QTY_EXCEEDS_ORDERED", "HEADER_LEVEL_ONLY", "DUPLICATE_SUSPECTED"} & set(
-        reasons["INV-041"]
+        reasons["INV-002"]
     )
-    assert reasons["INV-041"]["AMOUNT_WITHIN_TOLERANCE"]["text"] == (
-        "The taxable value 99,000.00 exceeds the 98,000.00 left on PO-2024-0151 by 1,000.00, within the 1,960.00 "
-        "tolerance."
-    )
-    assert details["INV-041"]["summary"] == (
-        "Approved; PO-2024-0151 is now fully invoiced, 1,000.00 over its balance and within the 1,960.00 tolerance."
-    )
-    assert details["INV-009"]["summary"] == "Approved; PO-2024-0152 is now fully invoiced."
-    assert reasons["INV-041"]["PO_FULLY_INVOICED"]["data"]["remaining_after"] == "-1000.00"
-    assert [orders["PO-2024-0151"][key] for key in ("status", "used", "left")] == [
-        "fully_invoiced",
-        "99000.00",
-        "-1000.00",
-    ]
-    assert not {"TAX_RATE_MISMATCH", "UNIT_PRICE_MISMATCH"} & set(reasons["INV-009"])
-    assert "TAXABLE_VALUE_DERIVED" in reasons["INV-009"]
-    assert details["INV-009"]["amount"] == "50000.00"
-    assert (orders["PO-2024-0152"]["status"], orders["PO-2024-0152"]["left"]) == ("fully_invoiced", "0.00")
+    assert details["INV-002"]["summary"] == "Approved; PO-2024-0143 is now fully invoiced."
+    assert not {"TAX_RATE_MISMATCH", "UNIT_PRICE_MISMATCH"} & set(reasons["INV-002"])
+    assert "TAXABLE_VALUE_DERIVED" in reasons["INV-002"]
+    assert details["INV-002"]["amount"] == "170000.00"
+    assert reasons["INV-002"]["PO_FULLY_INVOICED"]["data"]["remaining_after"] == "0.00"
+    assert (orders["PO-2024-0143"]["status"], orders["PO-2024-0143"]["left"]) == ("fully_invoiced", "0.00")
     assert reasons["INV-004"]["MISSING_INVOICE_NUMBER"]["level"] == "block"
     assert details["INV-004"]["number"] is None
     assert isinstance(details["INV-004"]["invoice_id"], int)
-    assert details["INV-004"]["amount"] == "45000.00"
+    assert details["INV-004"]["amount"] == "45500.00"
     assert (orders["PO-2024-0153"]["status"], orders["PO-2024-0153"]["left"]) == ("open", "45000.00")
 
 
@@ -289,24 +279,24 @@ async def test_derived_reasons_match_the_decision(client: httpx.AsyncClient, mon
     monkeypatch.setattr(EntitiesRegistry.DecisionStage, "run", capture)
 
     details: dict[str, dict[str, Any]] = {}
-    for sample in ("INV-001", "INV-024", "INV-025", "INV-021"):
+    for sample in ("INV-001", "INV-023", "INV-021"):
         run_id = (await client.post(f"/v1/runs/samples/{sample}")).json()["id"]
         await stream(client, run_id)
         details[sample] = (await client.get(f"/v1/runs/{run_id}")).json()
 
     expected = dict(zip(details, decided, strict=True))
-    for sample in ("INV-001", "INV-025", "INV-021"):
+    for sample in ("INV-001", "INV-023", "INV-021"):
         wire = [
             {"code": reason.code, "level": reason.severity, "text": reason.message, "data": reason.data}
             for reason in expected[sample].reasons
         ]
         assert details[sample]["reasons"] == wire
 
-    assert [details[sample]["outcome"] for sample in ("INV-025", "INV-021")] == ["needs_attention", "rejected"]
+    assert [details[sample]["outcome"] for sample in ("INV-023", "INV-021")] == ["needs_attention", "rejected"]
     assert all("reasons" not in json.loads(data) for (data,) in stored("SELECT data FROM steps"))
     assert [set(json.loads(data)) for (data,) in stored("SELECT data FROM steps WHERE name = 'decision'")] == [
         {"gates", "others", "update"}
-    ] * 4
+    ] * 3
     assert "reasons" not in {name for _, name, *_ in stored("PRAGMA table_info(runs)")}
 
 
@@ -404,8 +394,9 @@ async def test_unrecorded_document_needs_attention(client: httpx.AsyncClient) ->
 
 
 async def test_history_resolves_what_each_run_read(client: httpx.AsyncClient) -> None:
-    for number in range(1, 21):
-        run_id = (await client.post(f"/v1/runs/samples/INV-{number:03d}")).json()["id"]
+    scenario = json.loads((DATA / "samples.json").read_text())
+    for sample in scenario:
+        run_id = (await client.post(f"/v1/runs/samples/{sample['id']}")).json()["id"]
         await stream(client, run_id)
 
     runs = (await client.get("/v1/runs")).json()["data"]
@@ -421,7 +412,7 @@ async def test_history_resolves_what_each_run_read(client: httpx.AsyncClient) ->
         assert run["number"] == steps["extraction"]["extraction"]["invoice_number"]
         assert run["amount"] == (f"{Decimal(taxable):.2f}" if taxable is not None else None)
 
-    assert len(runs) == 20
+    assert len(runs) == len(scenario)
 
 
 async def test_usage_is_read_from_the_extraction_step(registry: type[EntitiesRegistry]) -> None:
@@ -478,9 +469,8 @@ async def test_the_store_never_looks_outside_the_upload_folder(adapter: AdapterR
 
 
 async def test_an_invoice_for_two_pos_consumes_both_or_neither(client: httpx.AsyncClient) -> None:
-    for sample in ("INV-026", "INV-028"):
-        run_id = (await client.post(f"/v1/runs/samples/{sample}")).json()["id"]
-        await stream(client, run_id)
+    run_id = (await client.post("/v1/runs/samples/INV-028")).json()["id"]
+    await stream(client, run_id)
 
     detail = (await client.get(f"/v1/runs/{run_id}")).json()
     steps = {step["name"]: step["data"] for step in detail["steps"]}
@@ -488,7 +478,7 @@ async def test_an_invoice_for_two_pos_consumes_both_or_neither(client: httpx.Asy
 
     assert (detail["outcome"], detail["po"]) == ("approved", "PO-2024-0159")
     assert detail["summary"] == (
-        "Approved and split between 2 POs: 64,000.00 on PO-2024-0159 (220,000.00 remains open) and 135,000.00 on "
+        "Approved and split between 2 POs: 64,000.00 on PO-2024-0159 (805,000.00 remains open) and 135,000.00 on "
         "PO-2024-0160 (55,000.00 remains open)."
     )
     assert (steps["po"]["po_number"], steps["po"]["others"]) == ("PO-2024-0159", ["PO-2024-0160"])
@@ -501,5 +491,5 @@ async def test_an_invoice_for_two_pos_consumes_both_or_neither(client: httpx.Asy
         ("PO-2024-0160", 1, True),
     ]
     assert steps["persist"]["others"] == [{"po_updated": "PO-2024-0160", "remaining_after": "55000.00"}]
-    assert (orders["PO-2024-0159"]["left"], orders["PO-2024-0160"]["left"]) == ("220000.00", "55000.00")
+    assert (orders["PO-2024-0159"]["left"], orders["PO-2024-0160"]["left"]) == ("805000.00", "55000.00")
     assert [line["used"] for line in orders["PO-2024-0160"]["lines"]] == ["15", "0"]

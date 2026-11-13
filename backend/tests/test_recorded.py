@@ -67,7 +67,7 @@ async def test_samples_carry_pdf_digest_and_reading_after_a_reset(client: httpx.
 
     assert reset.status_code == 200
     assert [(sample_id, pdf, digest, json.loads(reading)) for sample_id, pdf, digest, reading in seeded()] == expected()
-    assert stored("SELECT count(DISTINCT digest) FROM samples") == [(46,)]
+    assert stored("SELECT count(DISTINCT digest) FROM samples") == [(23,)]
 
 
 async def test_startup_seeds_pdfs_and_readings_into_an_empty_table(client: httpx.AsyncClient) -> None:
@@ -114,22 +114,22 @@ async def test_listing_samples_never_selects_the_heavy_columns(
     samples = (await client.get("/v1/admin/samples")).json()["data"]
     reads = [sql for sql in statements if "FROM samples" in sql]
 
-    assert len(samples) == 46
+    assert len(samples) == 23
     assert reads
     assert not [sql for sql in reads if "samples.pdf" in sql or "samples.reading" in sql]
 
 
 async def test_any_sample_runs_at_any_time(client: httpx.AsyncClient) -> None:
     unknown = await client.post("/v1/runs/samples/INV-099")
-    dependent = await client.post("/v1/runs/samples/INV-024")
+    dependent = await client.post("/v1/runs/samples/INV-028")
     await stream(client, dependent.json()["id"])
     detail = (await client.get(f"/v1/runs/{dependent.json()['id']}")).json()
     orders = {order["po"]: order for order in (await client.get("/v1/orders")).json()["data"]}
 
     assert (unknown.status_code, unknown.json()) == (404, {"detail": "Unknown sample INV-099"})
     assert dependent.status_code == 202
-    assert (detail["outcome"], detail["po"]) == ("approved", "PO-2024-0142")
-    assert orders["PO-2024-0142"]["left"] == "36000.00"
+    assert (detail["outcome"], detail["po"]) == ("approved", "PO-2024-0159")
+    assert orders["PO-2024-0159"]["left"] == "805000.00"
 
 
 async def test_sample_route_reads_one_sample_and_no_run(
@@ -141,7 +141,7 @@ async def test_sample_route_reads_one_sample_and_no_run(
     monkeypatch.setattr(EntitiesRegistry.Pipeline, "submit", submitted)
     statements.clear()
 
-    response = await client.post("/v1/runs/samples/INV-024")
+    response = await client.post("/v1/runs/samples/INV-028")
     samples = [sql for sql in statements if "FROM samples" in sql]
 
     assert (response.status_code, response.json()) == (202, {"id": "0" * 32})

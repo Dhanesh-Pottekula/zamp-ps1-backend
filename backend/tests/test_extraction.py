@@ -108,7 +108,7 @@ def test_conversion_normalises_blanks_and_indian_grouping() -> None:
     assert result.due_date is None
     assert result.currency == "INR"
     assert result.supplier_bank.bank_name is None
-    assert result.subtotal == Decimal("170000.00")
+    assert result.subtotal is None
     assert result.total == Decimal("200600.00")
     assert result.lines[0].unit_price is None
     assert result.lines[0].quantity == Decimal(30)
