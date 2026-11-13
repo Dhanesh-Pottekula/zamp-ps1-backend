@@ -1,0 +1,22 @@
+# The frontend is its own repository.
+frontend/
+
+# Private working notes and local tooling.
+HANDOFF.md
+PLAN.md
+DECISIONS.md
+.claude/
+.vscode/
+*.jpg
+
+# Secrets, local data and caches (backend/.gitignore repeats these for the backend folder).
+.env
+**/.env
+var/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+node_modules/
+.DS_Store

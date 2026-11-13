@@ -1,0 +1,70 @@
+{
+  "supplier_name": "Acme Supplies Pvt Ltd",
+  "supplier_tax_id": "29AACCA1234F1Z5",
+  "supplier_address": "Plot 42, 2nd Phase, Peenya Industrial Area, Bengaluru, Karnataka 560058",
+  "supplier_email": "accounts@acmesupplies.in",
+  "bank_account_name": "Acme Supplies Pvt Ltd",
+  "bank_account_number": "50200012345678",
+  "bank_code": "HDFC0001234",
+  "bank_name": "HDFC Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "ACM/24-25/0219",
+  "invoice_date": "2024-11-20",
+  "due_date": "2024-12-20",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0142",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Laptop stand (adjustable aluminium)",
+      "quantity": "10",
+      "unit": "pcs",
+      "unit_price": "1,200.00",
+      "line_amount": "12,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "12,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "1,080.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "1,080.00"
+    }
+  ],
+  "total": "14,160.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice No.: ACM/24-25/0219"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Invoice Date: 20/11/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due Date: 20/12/2024"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 12,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Grand Total (INR) 14,160.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "PO Reference: PO-2024-0142"
+    }
+  ]
+}

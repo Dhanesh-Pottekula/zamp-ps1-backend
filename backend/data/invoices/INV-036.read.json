@@ -1,0 +1,70 @@
+{
+  "supplier_name": "Brightline Infotech Pvt Ltd",
+  "supplier_tax_id": "29AAFCB7421K1Z3",
+  "supplier_address": "3rd Floor, Prestige Tech Park, Marathahalli, Bengaluru, Karnataka 560103",
+  "supplier_email": "accounts@brightlineinfotech.in",
+  "bank_account_name": "Brightline Infotech Pvt Ltd",
+  "bank_account_number": "50200077889900",
+  "bank_code": "HDFC0002211",
+  "bank_name": "HDFC Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "BLI/24-25/0451",
+  "invoice_date": "2024-12-10",
+  "due_date": "2025-01-09",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0160",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Monitor (24 inch IPS)",
+      "quantity": "5",
+      "unit": "pcs",
+      "unit_price": "11,000.00",
+      "line_amount": "55,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "55,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "4,950.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "4,950.00"
+    }
+  ],
+  "total": "64,900.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice Number: BLI/24-25/0451"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Dated: 10/12/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Payment Due: 09/01/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 55,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Total Amount Payable (INR) 64,900.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "Your Order No.: PO-2024-0160"
+    }
+  ]
+}

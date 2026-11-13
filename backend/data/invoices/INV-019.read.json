@@ -1,0 +1,70 @@
+{
+  "supplier_name": "Pixel Print Solutions",
+  "supplier_tax_id": "29AAKFP2468M1Z6",
+  "supplier_address": "221, 6th Cross, Wilson Garden, Bengaluru, Karnataka 560027",
+  "supplier_email": "accounts@pixelprint.in",
+  "bank_account_name": "Pixel Print Solutions",
+  "bank_account_number": "77700011122",
+  "bank_code": "YESB0000246",
+  "bank_name": "Yes Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "PP/2024/0456",
+  "invoice_date": "2024-11-11",
+  "due_date": "2024-12-11",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0147",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Product brochure (A4 colour)",
+      "quantity": "5000",
+      "unit": "pcs",
+      "unit_price": "5.00",
+      "line_amount": "25,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "25,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "2,250.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "2,250.00"
+    }
+  ],
+  "total": "29,500.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice Number: PP/2024/0456"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Dated: 11/11/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Payment Due: 11/12/2024"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 25,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Total Amount Payable (INR) 29,500.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "Your Order No.: PO-2024-0147"
+    }
+  ]
+}

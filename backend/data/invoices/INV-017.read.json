@@ -1,0 +1,65 @@
+{
+  "supplier_name": "Orion Logistics Pvt Ltd",
+  "supplier_tax_id": "",
+  "supplier_address": "B-112, Okhla Industrial Area Phase II, New Delhi, Delhi 110020",
+  "supplier_email": "accounts@orionlogistics.in",
+  "bank_account_name": "",
+  "bank_account_number": "",
+  "bank_code": "",
+  "bank_name": "",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "OL-INV-7840",
+  "invoice_date": "2024-11-18",
+  "due_date": "2024-12-03",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0145",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Freight - Bengaluru to Mumbai (October)",
+      "quantity": "1",
+      "unit": "lot",
+      "unit_price": "80,000.00",
+      "line_amount": "80,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "80,000.00",
+  "tax_lines": [
+    {
+      "label": "IGST",
+      "rate_pct": "18",
+      "amount": "14,400.00"
+    }
+  ],
+  "total": "94,400.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice No.: OL-INV-7840"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Invoice Date: 18/11/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due Date: 03/12/2024"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 80,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Grand Total (INR) 94,400.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "PO Reference: PO-2024-0145"
+    }
+  ]
+}

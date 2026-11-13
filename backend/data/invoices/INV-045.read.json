@@ -1,0 +1,70 @@
+{
+  "supplier_name": "Saffron Facility Supplies Pvt Ltd",
+  "supplier_tax_id": "29AAKCS3141R1Z7",
+  "supplier_address": "18, 2nd Main, Jayanagar 4th Block, Bengaluru, Karnataka 560011",
+  "supplier_email": "accounts@saffronfacility.in",
+  "bank_account_name": "Saffron Facility Supplies Pvt Ltd",
+  "bank_account_number": "917020061234567",
+  "bank_code": "UTIB0000922",
+  "bank_name": "Axis Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "SFS/24-25/0097",
+  "invoice_date": "2024-12-12",
+  "due_date": "2025-01-11",
+  "currency": "USD",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0164",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Water dispenser (hot and cold)",
+      "quantity": "2",
+      "unit": "pcs",
+      "unit_price": "14,000.00",
+      "line_amount": "28,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "28,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "2,520.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "2,520.00"
+    }
+  ],
+  "total": "33,040.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice # SFS/24-25/0097"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Date 12/12/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due 11/01/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable value 28,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Total (USD) 33,040.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "Order Ref. PO-2024-0164"
+    }
+  ]
+}

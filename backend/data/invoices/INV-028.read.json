@@ -1,0 +1,78 @@
+{
+  "supplier_name": "Brightline Infotech Pvt Ltd",
+  "supplier_tax_id": "29AAFCB7421K1Z3",
+  "supplier_address": "3rd Floor, Prestige Tech Park, Marathahalli, Bengaluru, Karnataka 560103",
+  "supplier_email": "accounts@brightlineinfotech.in",
+  "bank_account_name": "Brightline Infotech Pvt Ltd",
+  "bank_account_number": "50200077889900",
+  "bank_code": "HDFC0002211",
+  "bank_name": "HDFC Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "BLI/24-25/0431",
+  "invoice_date": "2024-11-30",
+  "due_date": "2024-12-30",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0159 / PO-2024-0160",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Wireless headset",
+      "quantity": "20",
+      "unit": "pcs",
+      "unit_price": "3,200.00",
+      "line_amount": "64,000.00",
+      "tax_rate_pct": "18"
+    },
+    {
+      "description": "Height-adjustable office desk",
+      "quantity": "15",
+      "unit": "pcs",
+      "unit_price": "9,000.00",
+      "line_amount": "1,35,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "1,99,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "17,910.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "17,910.00"
+    }
+  ],
+  "total": "2,34,820.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice No.: BLI/24-25/0431"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Invoice Date: 30/11/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due Date: 30/12/2024"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 1,99,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Grand Total (INR) 2,34,820.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "PO Reference: PO-2024-0159 / PO-2024-0160"
+    }
+  ]
+}

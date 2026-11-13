@@ -1,0 +1,59 @@
+{
+  "supplier_name": "Global Parts Inc",
+  "supplier_tax_id": "84-1234567",
+  "supplier_address": "2200 Commerce Parkway, Suite 400, Columbus, OH 43219, USA",
+  "supplier_email": "accounts@globalparts.com",
+  "bank_account_name": "Global Parts Inc",
+  "bank_account_number": "000123456789",
+  "bank_code": "CHASUS33",
+  "bank_name": "JPMorgan Chase",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "GP-10588",
+  "invoice_date": "2024-12-02",
+  "due_date": "2025-01-31",
+  "currency": "USD",
+  "date_order": "MDY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0150",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Precision bearing 6204-2RS",
+      "quantity": "60",
+      "unit": "pcs",
+      "unit_price": "45.00",
+      "line_amount": "2,700.00",
+      "tax_rate_pct": "0"
+    }
+  ],
+  "subtotal": "2,700.00",
+  "tax_lines": [],
+  "total": "2,700.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice No.: GP-10588"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Invoice Date: 12/02/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due Date: 01/31/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Subtotal 2,700.00"
+    },
+    {
+      "field": "total",
+      "text": "Total Due (USD) 2,700.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "PO Number: PO-2024-0150"
+    }
+  ]
+}

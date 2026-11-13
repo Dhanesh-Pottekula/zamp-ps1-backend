@@ -1,0 +1,65 @@
+{
+  "supplier_name": "ZT Office Solutions",
+  "supplier_tax_id": "",
+  "supplier_address": "Unit 7, Shah Industrial Estate, Andheri East, Mumbai, Maharashtra 400069",
+  "supplier_email": "accounts@zenithtraders.in",
+  "bank_account_name": "ZT Office Solutions",
+  "bank_account_number": "918020045678901",
+  "bank_code": "UTIB0000456",
+  "bank_name": "Axis Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "ZOS/24-25/118",
+  "invoice_date": "2024-11-16",
+  "due_date": "2024-12-31",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0156",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Ergonomic office chair",
+      "quantity": "5",
+      "unit": "pcs",
+      "unit_price": "8,500.00",
+      "line_amount": "42,500.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "42,500.00",
+  "tax_lines": [
+    {
+      "label": "IGST",
+      "rate_pct": "18",
+      "amount": "7,650.00"
+    }
+  ],
+  "total": "50,150.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice # ZOS/24-25/118"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Date 16/11/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due 31/12/2024"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable value 42,500.00"
+    },
+    {
+      "field": "total",
+      "text": "Total (INR) 50,150.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "Order Ref. PO-2024-0156"
+    }
+  ]
+}

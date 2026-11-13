@@ -1,0 +1,70 @@
+{
+  "supplier_name": "Brightline Infotech Pvt Ltd",
+  "supplier_tax_id": "29AAFCB7421K1Z3",
+  "supplier_address": "3rd Floor, Prestige Tech Park, Marathahalli, Bengaluru, Karnataka 560103",
+  "supplier_email": "accounts@brightlineinfotech.in",
+  "bank_account_name": "",
+  "bank_account_number": "",
+  "bank_code": "",
+  "bank_name": "",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "BLI/24-25/0412",
+  "invoice_date": "2024-11-27",
+  "due_date": "2024-12-27",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0161",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Magnetic whiteboard (4 x 3 ft)",
+      "quantity": "20",
+      "unit": "pcs",
+      "unit_price": "2,400.00",
+      "line_amount": "48,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "48,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "4,320.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "4,320.00"
+    }
+  ],
+  "total": "56,640.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice No.: BLI/24-25/0412"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Invoice Date: 27/11/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due Date: 27/12/2024"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 48,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Grand Total (INR) 56,640.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "PO Reference: PO-2024-0161"
+    }
+  ]
+}

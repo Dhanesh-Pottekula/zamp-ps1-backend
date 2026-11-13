@@ -1,0 +1,324 @@
+[
+  {
+    "step": 1,
+    "id": "INV-001",
+    "title": "Happy path: clean PDF",
+    "expect": "Acme invoices 30 of 50 laptop stands. Approved as a partial delivery; PO-2024-0142 drops from 60,000 to 24,000.",
+    "outcome": "approved"
+  },
+  {
+    "step": 2,
+    "id": "INV-002",
+    "title": "Happy path: scanned PDF",
+    "expect": "A scanned Zenith invoice with no text layer. Read by vision, approved; PO-2024-0143 is fully invoiced.",
+    "outcome": "approved"
+  },
+  {
+    "step": 3,
+    "id": "INV-003",
+    "title": "Password-protected PDF",
+    "expect": "Acme sends its invoice as a password-protected PDF. It cannot be opened, so intake refuses it and nothing else runs. Rejected: ask the supplier for an unlocked copy.",
+    "outcome": "rejected"
+  },
+  {
+    "step": 4,
+    "id": "INV-004",
+    "title": "Missing invoice number",
+    "expect": "An Acme invoice that matches its PO but prints no invoice number. Needs attention: it cannot be approved without one, and PO-2024-0153 keeps its 45,000.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 5,
+    "id": "INV-005",
+    "title": "Incomplete invoice: no date, no total",
+    "expect": "Orion bills the Delhi freight against PO-2024-0146, but the invoice prints no date and no grand total. The missing date is a warning; without a total the amounts cannot be checked, so it needs attention and PO-2024-0146 keeps its 82,000.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 6,
+    "id": "INV-006",
+    "title": "Warnings only: future and unclear date, no currency",
+    "expect": "Saffron bills 8 paper shredders against PO-2024-0163. The invoice prints no GSTIN, no address and no currency, and is dated 03/04/2030: in the future, and nothing on the page says whether that is 3 April or 4 March. Saffron is still identified by its bank account and name. Each of these is a warning and none blocks, so it is approved with the warnings shown.",
+    "outcome": "approved"
+  },
+  {
+    "step": 7,
+    "id": "INV-007",
+    "title": "Lines and totals that do not add up",
+    "expect": "Nova bills 300 connector modules (45,000.00) against PO-2024-0144, but prints a taxable value of 45,500.00 and a total of 54,000.00, which is not 45,500.00 plus 8,100.00 GST. Sums that do not add up block, so it needs attention and PO-2024-0144 keeps its 45,000.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 8,
+    "id": "INV-008",
+    "title": "Credit note: negative amounts",
+    "expect": "Acme sends a credit note for 5 returned cable trays: a negative quantity and negative amounts (-3,250.00 plus GST). A credit note is never processed or consumed automatically, so it needs attention.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 9,
+    "id": "INV-009",
+    "title": "Tax embedded in prices",
+    "expect": "Pixel Print prints GST-inclusive prices and one total of 59,000, with no taxable value or tax rows. The taxable 50,000 is derived from the 18% rate; approved, PO-2024-0152 is fully invoiced.",
+    "outcome": "approved"
+  },
+  {
+    "step": 10,
+    "id": "INV-010",
+    "title": "International: US invoice, month-first date",
+    "expect": "A US export invoice in USD printed 11/04/2024. The document is American, so it is read month first as 4 November 2024, not 11 April. Approved; PO-2024-0150 is fully invoiced.",
+    "outcome": "approved"
+  },
+  {
+    "step": 11,
+    "id": "INV-011",
+    "title": "International: German invoice, decimal comma and VAT",
+    "expect": "A German invoice in EUR with amounts like 14.994,00, MwSt. 19 % and an IBAN. Read with the comma as the decimal point. Approved; PO-2024-0154 is fully invoiced.",
+    "outcome": "approved"
+  },
+  {
+    "step": 12,
+    "id": "INV-012",
+    "title": "International: UK invoice, VAT-inclusive prices",
+    "expect": "A UK invoice in GBP whose prices include 20% VAT, with the VAT shown but no net total. The taxable value 3,300.00 is derived from the total and the VAT. Approved; PO-2024-0155 is fully invoiced.",
+    "outcome": "approved"
+  },
+  {
+    "step": 13,
+    "id": "INV-013",
+    "title": "Supplier not in the vendor master",
+    "expect": "Lotus Workspace Interiors is not an approved vendor: its GSTIN, bank account and name match nobody. No PO is printed, and no PO can be matched for an unknown vendor. Needs attention: onboard the vendor or refuse the invoice.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 14,
+    "id": "INV-014",
+    "title": "Rejected: suspended vendor",
+    "expect": "Nova Component Systems is suspended in the vendor master. The invoice is rejected whatever it bills; Jev is never asked.",
+    "outcome": "rejected"
+  },
+  {
+    "step": 15,
+    "id": "INV-015",
+    "title": "GSTIN misprinted",
+    "expect": "Acme's invoice prints GSTIN 29AACCA1234F0Z5: not a valid GSTIN shape, and not the 29AACCA1234F1Z5 in the vendor master. The bank account and name still point to Acme, but a different tax ID blocks payment until someone confirms who is invoicing.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 16,
+    "id": "INV-016",
+    "title": "Bank account matches, name does not",
+    "expect": "An invoice from 'ZT Office Solutions', with no GSTIN, asks to be paid into Zenith's bank account. Only the bank account matches the vendor master (60 points, more than 80 needed), so the vendor is not identified with confidence. Needs attention: confirm it is Zenith.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 17,
+    "id": "INV-017",
+    "title": "Vendor found by name only",
+    "expect": "Orion prints neither its GSTIN nor bank details. The name matches Orion exactly, but a name alone does not prove who is invoicing, so a person must confirm the vendor. Needs attention.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 18,
+    "id": "INV-018",
+    "title": "Name close to two vendors",
+    "expect": "'Nova Component Pvt Ltd', with no GSTIN or bank details, is close to two vendors in the master: Nova Components (approved) and Nova Component Systems (suspended). The process refuses to choose between them. Needs attention.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 19,
+    "id": "INV-019",
+    "title": "Bank account mismatch",
+    "expect": "Everything matches except the bank account, which differs from the vendor master. Needs attention as a fraud signal.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 20,
+    "id": "INV-020",
+    "title": "No bank details on the invoice",
+    "expect": "Brightline prints no bank account at all. The GSTIN and the name both match the vendor master (score 100), so the vendor is still identified; the bank stage notes that payment goes to the master account. Approved; PO-2024-0161 is fully invoiced.",
+    "outcome": "approved"
+  },
+  {
+    "step": 21,
+    "id": "INV-021",
+    "title": "Duplicate invoice",
+    "expect": "Acme re-sends invoice ACM/24-25/0187. Rejected as an exact duplicate of step 1.",
+    "outcome": "rejected"
+  },
+  {
+    "step": 22,
+    "id": "INV-022",
+    "title": "Re-issue setup: the original invoice",
+    "expect": "Acme bills 40 cable trays, 26,000, on PO-2024-0158. Approved as a partial delivery; 39,000 remains. Run it before INV-023.",
+    "outcome": "approved"
+  },
+  {
+    "step": 23,
+    "id": "INV-023",
+    "title": "Re-issued under a new number",
+    "expect": "Acme sends the same 40 trays, same date and amount, under a new invoice number. The number check passes, but the details match INV-022, so it is held as a suspected duplicate. PO-2024-0158 keeps its 39,000.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 24,
+    "id": "INV-024",
+    "title": "Split invoice: final shipment",
+    "expect": "Acme invoices the remaining 20 stands. Approved; PO-2024-0142 is fully invoiced.",
+    "outcome": "approved"
+  },
+  {
+    "step": 25,
+    "id": "INV-025",
+    "title": "Split invoice: over-consumption",
+    "expect": "A third Acme invoice on the same PO. Needs attention: nothing is left on the PO and the quantity exceeds the order.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 26,
+    "id": "INV-026",
+    "title": "Some lines of a multi-line PO",
+    "expect": "PO-2024-0159 orders four different items. Brightline bills two of them in full (10 laptops and 10 docking stations, 585,000). Approved as a partial delivery; 284,000 remains for the monitors and headsets.",
+    "outcome": "approved"
+  },
+  {
+    "step": 27,
+    "id": "INV-027",
+    "title": "Partial invoice, no PO number: matched by its line",
+    "expect": "Brightline bills 10 of the 20 monitors and prints no PO number. Only PO-2024-0159 orders monitors and the description matches exactly, so the code is sure of the line and matches it without Jev. Approved as a partial delivery. Run INV-026 first.",
+    "outcome": "approved"
+  },
+  {
+    "step": 28,
+    "id": "INV-028",
+    "title": "One invoice split between two POs",
+    "expect": "Brightline bills headsets from PO-2024-0159 and desks from PO-2024-0160 on one invoice and prints both PO numbers. Each line sits on exactly one of the POs, so the invoice is split: 64,000 on PO-2024-0159 and 135,000 on PO-2024-0160. Approved; both balances drop in one step. Run INV-027 first.",
+    "outcome": "approved"
+  },
+  {
+    "step": 29,
+    "id": "INV-029",
+    "title": "PO number of another vendor",
+    "expect": "Orion quotes PO-2024-0153, which belongs to Acme. The PO is not matched to Orion and nothing is drawn from Acme's PO. Needs attention.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 30,
+    "id": "INV-030",
+    "title": "Rejected: cancelled PO",
+    "expect": "Pixel Print bills business cards against PO-2024-0149, which was cancelled. Rejected; a printed PO is never handed to Jev.",
+    "outcome": "rejected"
+  },
+  {
+    "step": 31,
+    "id": "INV-031",
+    "title": "PO number that does not exist",
+    "expect": "Saffron prints PO-2024-0999, which is not in the PO register. A printed PO number is never replaced by a guess, so the invoice needs attention.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 32,
+    "id": "INV-032",
+    "title": "Invoice dated before the PO",
+    "expect": "Kaveri bills 2 glass whiteboards on an invoice dated 2 November 2024, before either of its POs was raised (8 and 12 November). No open PO existed on that date, so none is matched. Needs attention.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 33,
+    "id": "INV-033",
+    "title": "No PO number: lines found on two POs",
+    "expect": "Saffron prints no PO number and has three open POs. The invoice bills 10 of 20 chairs and all 30 desk lamps from PO-2024-0162 and 2 of 6 printers from PO-2024-0163. Every line matches one PO line exactly, so the code splits the invoice without asking Jev: 129,000 and 36,000. Approved.",
+    "outcome": "approved"
+  },
+  {
+    "step": 34,
+    "id": "INV-034",
+    "title": "Jev keeps reworded lines",
+    "expect": "Kaveri bills 10 'Ergo footrest pad' and 2 'Glass marker board 6ft x 4ft' against PO-2024-0165. They score 74 and 72 against 'Ergonomic footrest' and 'Glass whiteboard (6 x 4 ft)', below the 90 the code needs to be sure, so Jev is asked and confirms both. Approved as a partial delivery.",
+    "outcome": "approved"
+  },
+  {
+    "step": 35,
+    "id": "INV-035",
+    "title": "An ambiguous line: Jev is not confident, so a person decides",
+    "expect": "Kaveri bills 12 'Meeting table wire tray' against PO-2024-0166. The code's best text match is the meeting table (score 72), so it is not sure and asks Jev. Jev rejects the table and is not confident (0.80 or less) that the under-desk cable tray is the same item, so the line stays unmatched. Needs attention: match the line by hand.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 36,
+    "id": "INV-036",
+    "title": "Wrong PO number printed",
+    "expect": "Brightline prints PO-2024-0160 but bills 5 monitors, which only PO-2024-0159 orders. Only the printed PO is searched: Jev confirms none of its lines is a monitor, so the line stays unmatched. Needs attention; PO-2024-0159 is never drawn on. Run INV-028 first.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 37,
+    "id": "INV-037",
+    "title": "Freight and a look-alike item on no PO line",
+    "expect": "Vertex bills 10 wireless headsets, 5 'Monitor' and a freight charge, with no PO number. The headsets match exactly, so the code settles that line without Jev. Jev is asked about the other two: 'Monitor' is not the PO's monitor arm, even at the same price, and freight is on no PO line. Needs attention: those two lines are not on any PO.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 38,
+    "id": "INV-038",
+    "title": "Same item on two POs: oldest first",
+    "expect": "Kaveri bills 30 stackable visitor chairs with no PO number. Both its open POs order that chair at the same price, so the code is not sure which; Jev says both are right, and the code fills the oldest PO first: 30 chairs from PO-2024-0165. Approved; 10 chairs remain on that PO line. Run INV-034 first.",
+    "outcome": "approved"
+  },
+  {
+    "step": 39,
+    "id": "INV-039",
+    "title": "One line split across two POs, oldest first",
+    "expect": "Kaveri bills 70 stackable visitor chairs with no PO number. Jev says the line draws on both POs' chair lines; the code fills the oldest PO first: the last 10 chairs of PO-2024-0165, then 60 of PO-2024-0166. Approved; both chair lines are fully used. Run INV-038 first.",
+    "outcome": "approved"
+  },
+  {
+    "step": 40,
+    "id": "INV-040",
+    "title": "Same item on two POs at different prices",
+    "expect": "Vertex bills 30 cafeteria chairs at 2,800 with no PO number. Both its POs order that chair: at 2,600 (PO-2024-0167, older) and at 2,800 (PO-2024-0168). Jev picks the line with the invoice's price, so the line goes to PO-2024-0168 instead of the code's suggestion. Approved as a partial delivery.",
+    "outcome": "approved"
+  },
+  {
+    "step": 41,
+    "id": "INV-041",
+    "title": "Amount close but not exact",
+    "expect": "Zenith bills 40 monitor arms at 2,475 against a PO price of 2,450: 1,000 over the 98,000 balance, inside the 1,960 tolerance. Approved; PO-2024-0151 is fully invoiced, 1,000 over.",
+    "outcome": "approved"
+  },
+  {
+    "step": 42,
+    "id": "INV-042",
+    "title": "Price raised inside the PO balance",
+    "expect": "Zenith bills 10 chairs at 9,350 against a PO price of 8,500 (10% more). The 93,500 fits easily inside the 255,000 balance, so only the line check catches it. Needs attention; PO-2024-0156 keeps its 255,000.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 43,
+    "id": "INV-043",
+    "title": "Wrong GST rate",
+    "expect": "Pixel Print charges 18% GST on notebooks the PO priced at 12%. Quantity, price and amount all match; only the tax rate is wrong. Needs attention; PO-2024-0157 keeps its 30,000.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 44,
+    "id": "INV-044",
+    "title": "Quantity more than what is left, on a split invoice",
+    "expect": "Saffron bills 14 chairs and 2 microwaves with no PO number. The lines match PO-2024-0162 and PO-2024-0164, but only 10 chairs are left on PO-2024-0162 after INV-033. The quantity check fails, so the invoice needs attention and neither PO is consumed. Run INV-033 first.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 45,
+    "id": "INV-045",
+    "title": "Invoice in the wrong currency",
+    "expect": "Saffron bills 2 water dispensers against PO-2024-0164, but in USD; the PO is in INR. A currency difference blocks, so the invoice needs attention.",
+    "outcome": "needs_attention"
+  },
+  {
+    "step": 46,
+    "id": "INV-046",
+    "title": "Split invoice with a line that has no unit price",
+    "expect": "Saffron prints PO-2024-0162 and PO-2024-0164 and bills 4 acoustic panels as a lump sum (24,800.00, no unit price) and 2 water dispensers. Without a unit price the invoice cannot be split between the two POs line by line, so only the totals are compared and the invoice needs attention; neither PO is consumed.",
+    "outcome": "needs_attention"
+  }
+]

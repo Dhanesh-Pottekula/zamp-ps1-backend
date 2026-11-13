@@ -1,0 +1,66 @@
+{
+  "supplier_name": "Kaveri Office Interiors Pvt Ltd",
+  "supplier_tax_id": "29AAJCK5567L1Z2",
+  "supplier_address": "44, Residency Road, Bengaluru, Karnataka 560025",
+  "supplier_email": "accounts@kaveriinteriors.in",
+  "bank_account_name": "Kaveri Office Interiors Pvt Ltd",
+  "bank_account_number": "50100088990011",
+  "bank_code": "HDFC0004455",
+  "bank_name": "HDFC Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "KOI/24-25/0261",
+  "invoice_date": "2024-12-10",
+  "due_date": "2025-01-09",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Visitor chair - stackable, grey",
+      "quantity": "25",
+      "unit": "pcs",
+      "unit_price": "2,600.00",
+      "line_amount": "65,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "65,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "5,850.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "5,850.00"
+    }
+  ],
+  "total": "76,700.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice # KOI/24-25/0261"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Date 10/12/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due 09/01/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable value 65,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Total (INR) 76,700.00"
+    }
+  ]
+}

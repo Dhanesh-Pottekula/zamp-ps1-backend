@@ -1,0 +1,70 @@
+{
+  "supplier_name": "Saffron Facility Supplies Pvt Ltd",
+  "supplier_tax_id": "",
+  "supplier_address": "",
+  "supplier_email": "",
+  "bank_account_name": "Saffron Facility Supplies Pvt Ltd",
+  "bank_account_number": "917020061234567",
+  "bank_code": "UTIB0000922",
+  "bank_name": "Axis Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "SFS/30-31/0004",
+  "invoice_date": "2030-04-03",
+  "due_date": "2030-05-03",
+  "currency": "",
+  "date_order": "",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0163",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Paper shredder (cross-cut)",
+      "quantity": "8",
+      "unit": "pcs",
+      "unit_price": "9,500.00",
+      "line_amount": "76,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "76,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "6,840.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "6,840.00"
+    }
+  ],
+  "total": "89,680.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice No.: SFS/30-31/0004"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Invoice Date: 03/04/2030"
+    },
+    {
+      "field": "due_date",
+      "text": "Due Date: 03/05/2030"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 76,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Grand Total 89,680.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "PO Reference: PO-2024-0163"
+    }
+  ]
+}

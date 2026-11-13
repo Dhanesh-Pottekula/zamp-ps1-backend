@@ -1,0 +1,61 @@
+{
+  "supplier_name": "Nova Component Systems Pvt Ltd",
+  "supplier_tax_id": "33AAHCN9753Q1Z4",
+  "supplier_address": "27 Ambattur Industrial Estate, Chennai, Tamil Nadu 600058",
+  "supplier_email": "accounts@novacomponentsystems.in",
+  "bank_account_name": "Nova Component Systems Pvt Ltd",
+  "bank_account_number": "30011223344",
+  "bank_code": "PUNB0097500",
+  "bank_name": "Punjab National Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "NCS/24-25/0312",
+  "invoice_date": "2024-12-10",
+  "due_date": "2025-01-09",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Proximity sensor M12 (PNP)",
+      "quantity": "50",
+      "unit": "pcs",
+      "unit_price": "640.00",
+      "line_amount": "32,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "32,000.00",
+  "tax_lines": [
+    {
+      "label": "IGST",
+      "rate_pct": "18",
+      "amount": "5,760.00"
+    }
+  ],
+  "total": "37,760.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice # NCS/24-25/0312"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Date 10/12/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due 09/01/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable value 32,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Total (INR) 37,760.00"
+    }
+  ]
+}

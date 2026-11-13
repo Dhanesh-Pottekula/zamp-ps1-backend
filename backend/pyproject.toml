@@ -1,0 +1,49 @@
+[project]
+name = "ps1-invoice"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "anthropic==2.8.0",
+    "fastapi==0.162.4",
+    "openai==3.49.0",
+    "pydantic==2.14.3",
+    "pydantic-settings==2.16.2",
+    "pypdf==7.0.1",
+    "python-multipart==0.0.33",
+    "rapidfuzz==3.14.6",
+    "sqlalchemy==2.1.8",
+    "typesafe-sdk==0.7.0",
+    "uvicorn[standard]==0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx==0.28.1",
+    "pillow==13.0.0",
+    "pypdfium2==5.15.2",
+    "pytest==9.2.0",
+    "pytest-asyncio==1.4.1.post1",
+    "reportlab==5.1.0",
+    "ruff==0.17.4",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM", "RUF", "ASYNC", "PL", "C4", "PTH", "RET", "TC"]
+ignore = ["COM812", "PLR0913", "PLR2004"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["PLR", "N"]
+"scripts/*" = ["PLR"]
+
+[tool.ruff.format]
+skip-magic-trailing-comma = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]

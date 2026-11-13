@@ -1,0 +1,74 @@
+{
+  "supplier_name": "Saffron Facility Supplies Pvt Ltd",
+  "supplier_tax_id": "29AAKCS3141R1Z7",
+  "supplier_address": "18, 2nd Main, Jayanagar 4th Block, Bengaluru, Karnataka 560011",
+  "supplier_email": "accounts@saffronfacility.in",
+  "bank_account_name": "Saffron Facility Supplies Pvt Ltd",
+  "bank_account_number": "917020061234567",
+  "bank_code": "UTIB0000922",
+  "bank_name": "Axis Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "SFS/24-25/0144",
+  "invoice_date": "2024-12-07",
+  "due_date": "2025-01-06",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "LED desk lamp with dimmer",
+      "quantity": "12",
+      "unit": "pcs",
+      "unit_price": "1,800.00",
+      "line_amount": "21,600.00",
+      "tax_rate_pct": "18"
+    },
+    {
+      "description": "Laminating machine (A3)",
+      "quantity": "2",
+      "unit": "pcs",
+      "unit_price": "4,200.00",
+      "line_amount": "8,400.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "30,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "2,700.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "2,700.00"
+    }
+  ],
+  "total": "35,400.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice No.: SFS/24-25/0144"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Invoice Date: 07/12/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due Date: 06/01/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 30,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Grand Total (INR) 35,400.00"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "supplier_name": "Kaveri Office Interiors Pvt Ltd",
+  "supplier_tax_id": "29AAJCK5567L1Z2",
+  "supplier_address": "44, Residency Road, Bengaluru, Karnataka 560025",
+  "supplier_email": "accounts@kaveriinteriors.in",
+  "bank_account_name": "Kaveri Office Interiors Pvt Ltd",
+  "bank_account_number": "50100088990011",
+  "bank_code": "HDFC0004455",
+  "bank_name": "HDFC Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "KOI/24-25/0210",
+  "invoice_date": "2024-12-12",
+  "due_date": "2025-01-11",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0165",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Ergo footrest pad",
+      "quantity": "10",
+      "unit": "pcs",
+      "unit_price": "1,400.00",
+      "line_amount": "14,000.00",
+      "tax_rate_pct": "18"
+    },
+    {
+      "description": "Glass marker board 6ft x 4ft",
+      "quantity": "2",
+      "unit": "pcs",
+      "unit_price": "12,500.00",
+      "line_amount": "25,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "39,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "3,510.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "3,510.00"
+    }
+  ],
+  "total": "46,020.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice Number: KOI/24-25/0210"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Dated: 12/12/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Payment Due: 11/01/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 39,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Total Amount Payable (INR) 46,020.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "Your Order No.: PO-2024-0165"
+    }
+  ]
+}

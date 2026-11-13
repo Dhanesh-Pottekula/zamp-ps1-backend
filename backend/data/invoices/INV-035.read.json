@@ -1,0 +1,70 @@
+{
+  "supplier_name": "Kaveri Office Interiors Pvt Ltd",
+  "supplier_tax_id": "29AAJCK5567L1Z2",
+  "supplier_address": "44, Residency Road, Bengaluru, Karnataka 560025",
+  "supplier_email": "accounts@kaveriinteriors.in",
+  "bank_account_name": "Kaveri Office Interiors Pvt Ltd",
+  "bank_account_number": "50100088990011",
+  "bank_code": "HDFC0004455",
+  "bank_name": "HDFC Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "KOI/24-25/0214",
+  "invoice_date": "2024-12-13",
+  "due_date": "2025-01-12",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0166",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Meeting table wire tray",
+      "quantity": "12",
+      "unit": "pcs",
+      "unit_price": "900.00",
+      "line_amount": "10,800.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "10,800.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "972.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "972.00"
+    }
+  ],
+  "total": "12,744.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice # KOI/24-25/0214"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Date 13/12/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due 12/01/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable value 10,800.00"
+    },
+    {
+      "field": "total",
+      "text": "Total (INR) 12,744.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "Order Ref. PO-2024-0166"
+    }
+  ]
+}

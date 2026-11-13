@@ -1,0 +1,61 @@
+{
+  "supplier_name": "Nova Component Pvt Ltd",
+  "supplier_tax_id": "",
+  "supplier_address": "14 SIDCO Industrial Estate, Guindy, Chennai, Tamil Nadu 600032",
+  "supplier_email": "accounts@novacomponents.in",
+  "bank_account_name": "",
+  "bank_account_number": "",
+  "bank_code": "",
+  "bank_name": "",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "NC/1124/077",
+  "invoice_date": "2024-11-20",
+  "due_date": "2024-12-20",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Proximity sensor M12 (PNP)",
+      "quantity": "20",
+      "unit": "pcs",
+      "unit_price": "640.00",
+      "line_amount": "12,800.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "12,800.00",
+  "tax_lines": [
+    {
+      "label": "IGST",
+      "rate_pct": "18",
+      "amount": "2,304.00"
+    }
+  ],
+  "total": "15,104.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice # NC/1124/077"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Date 20/11/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due 20/12/2024"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable value 12,800.00"
+    },
+    {
+      "field": "total",
+      "text": "Total (INR) 15,104.00"
+    }
+  ]
+}

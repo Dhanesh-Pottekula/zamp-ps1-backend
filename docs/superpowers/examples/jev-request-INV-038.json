@@ -1,0 +1,229 @@
+{
+  "note": "Exact request the code sends to Jev for sample INV-038 (70 stackable visitor chairs, no PO printed), captured by running the samples in step order. The answers are the provisional placeholders, not real Jev output.",
+  "request_body": {
+    "model": "jev-1.13.0",
+    "state": {
+      "situation": "An accounts-payable clerk is matching each line of a supplier invoice to the lines of the supplier's purchase orders. invoice is the whole invoice as read; purchase_orders lists every candidate PO in full with every line, what was ordered, already invoiced and what is left. code_conclusions says what the matching code proposed for each invoice line, with its description score out of 100, and whether it is sure; lines it is not sure about are yours to decide. A PO line can be billed in part, one invoice line can draw on lines of several POs, and an invoice line may be on no PO line at all. Judge by what the items are, not by exact wording; quantities, prices and balances are checked separately.",
+      "invoice": {
+        "supplier": "Kaveri Office Interiors Pvt Ltd",
+        "invoice_number": "KOI/24-25/0225",
+        "invoice_date": "2024-12-16",
+        "due_date": "2025-01-15",
+        "currency": "INR",
+        "po_reference": null,
+        "lines": [
+          {
+            "line": 1,
+            "description": "Stackable visitor chair",
+            "quantity": "70",
+            "unit": "pcs",
+            "unit_price": "2600",
+            "line_amount": "182000",
+            "tax_rate_pct": "18"
+          }
+        ],
+        "subtotal": "182000",
+        "tax_lines": [
+          {
+            "label": "CGST",
+            "rate_pct": "9",
+            "amount": "16380"
+          },
+          {
+            "label": "SGST",
+            "rate_pct": "9",
+            "amount": "16380"
+          }
+        ],
+        "total": "214760",
+        "taxable_value": "182000"
+      },
+      "printed_po_numbers": [],
+      "purchase_orders": [
+        {
+          "po_number": "PO-2024-0166",
+          "po_date": "2024-11-12",
+          "currency": "INR",
+          "status": "partially_invoiced",
+          "total": "311,000.00",
+          "used": "10,800.00",
+          "remaining": "300,200.00",
+          "lines": [
+            {
+              "line": 1,
+              "description": "Stackable visitor chair",
+              "ordered": "60",
+              "already_invoiced": "0",
+              "left": "60",
+              "unit_price": "2,600.00",
+              "tax_rate_pct": "18",
+              "nothing_left": false
+            },
+            {
+              "line": 2,
+              "description": "Round meeting table (6 seater)",
+              "ordered": "4",
+              "already_invoiced": "0",
+              "left": "4",
+              "unit_price": "32,000.00",
+              "tax_rate_pct": "18",
+              "nothing_left": false
+            },
+            {
+              "line": 3,
+              "description": "Under-desk cable tray",
+              "ordered": "30",
+              "already_invoiced": "12",
+              "left": "18",
+              "unit_price": "900.00",
+              "tax_rate_pct": "18",
+              "nothing_left": false
+            }
+          ]
+        },
+        {
+          "po_number": "PO-2024-0165",
+          "po_date": "2024-11-08",
+          "currency": "INR",
+          "status": "partially_invoiced",
+          "total": "214,000.00",
+          "used": "92,000.00",
+          "remaining": "122,000.00",
+          "lines": [
+            {
+              "line": 1,
+              "description": "Stackable visitor chair",
+              "ordered": "40",
+              "already_invoiced": "30",
+              "left": "10",
+              "unit_price": "2,600.00",
+              "tax_rate_pct": "18",
+              "nothing_left": false
+            },
+            {
+              "line": 2,
+              "description": "Glass whiteboard (6 x 4 ft)",
+              "ordered": "6",
+              "already_invoiced": "0",
+              "left": "6",
+              "unit_price": "12,500.00",
+              "tax_rate_pct": "18",
+              "nothing_left": false
+            },
+            {
+              "line": 3,
+              "description": "Ergonomic footrest",
+              "ordered": "25",
+              "already_invoiced": "10",
+              "left": "15",
+              "unit_price": "1,400.00",
+              "tax_rate_pct": "18",
+              "nothing_left": false
+            }
+          ]
+        }
+      ],
+      "code_conclusions": [
+        {
+          "line": 1,
+          "sure": false,
+          "suggestion": "PO-2024-0165/1",
+          "suggestion_score": 100,
+          "similar_lines": [
+            {
+              "po_line": "PO-2024-0166/1",
+              "score": 100
+            }
+          ]
+        }
+      ]
+    },
+    "questions": {
+      "line_1__PO-2024-0165__1": {
+        "type": "noul",
+        "instructions": "Does invoice line 1 (Stackable visitor chair) bill items from PO-2024-0165 line 1 (Stackable visitor chair)?",
+        "criteria": {
+          "true": "Invoice line 1 is this item, in whole or in part.",
+          "false": "Invoice line 1 is a different item."
+        }
+      },
+      "line_1__PO-2024-0166__1": {
+        "type": "noul",
+        "instructions": "Does invoice line 1 (Stackable visitor chair) bill items from PO-2024-0166 line 1 (Stackable visitor chair)?",
+        "criteria": {
+          "true": "Invoice line 1 is this item, in whole or in part.",
+          "false": "Invoice line 1 is a different item."
+        }
+      },
+      "line_1__PO-2024-0166__3": {
+        "type": "noul",
+        "instructions": "Does invoice line 1 (Stackable visitor chair) bill items from PO-2024-0166 line 3 (Under-desk cable tray)?",
+        "criteria": {
+          "true": "Invoice line 1 is this item, in whole or in part.",
+          "false": "Invoice line 1 is a different item."
+        }
+      },
+      "line_1__PO-2024-0166__2": {
+        "type": "noul",
+        "instructions": "Does invoice line 1 (Stackable visitor chair) bill items from PO-2024-0166 line 2 (Round meeting table (6 seater))?",
+        "criteria": {
+          "true": "Invoice line 1 is this item, in whole or in part.",
+          "false": "Invoice line 1 is a different item."
+        }
+      },
+      "line_1__PO-2024-0165__2": {
+        "type": "noul",
+        "instructions": "Does invoice line 1 (Stackable visitor chair) bill items from PO-2024-0165 line 2 (Glass whiteboard (6 x 4 ft))?",
+        "criteria": {
+          "true": "Invoice line 1 is this item, in whole or in part.",
+          "false": "Invoice line 1 is a different item."
+        }
+      },
+      "line_1__PO-2024-0165__3": {
+        "type": "noul",
+        "instructions": "Does invoice line 1 (Stackable visitor chair) bill items from PO-2024-0165 line 3 (Ergonomic footrest)?",
+        "criteria": {
+          "true": "Invoice line 1 is this item, in whole or in part.",
+          "false": "Invoice line 1 is a different item."
+        }
+      }
+    }
+  },
+  "response_body": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "line_1__PO-2024-0165__1": {
+        "type": "noul",
+        "noul": 0.92
+      },
+      "line_1__PO-2024-0166__1": {
+        "type": "noul",
+        "noul": 0.94
+      },
+      "line_1__PO-2024-0166__3": {
+        "type": "noul",
+        "noul": 0.02
+      },
+      "line_1__PO-2024-0166__2": {
+        "type": "noul",
+        "noul": 0.02
+      },
+      "line_1__PO-2024-0165__2": {
+        "type": "noul",
+        "noul": 0.02
+      },
+      "line_1__PO-2024-0165__3": {
+        "type": "noul",
+        "noul": 0.02
+      }
+    },
+    "usage": {
+      "input_tokens": "(from TypeSafe)",
+      "output_tokens": "(from TypeSafe)"
+    }
+  },
+  "result": {
+    "outcome": "approved",
+    "summary": "Approved and split between 2 POs: 26,000.00 on PO-2024-0165 (96,000.00 remains open) and 156,000.00 on PO-2024-0166 (144,200.00 remains open)."
+  }
+}

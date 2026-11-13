@@ -1,0 +1,78 @@
+{
+  "supplier_name": "Brightline Infotech Pvt Ltd",
+  "supplier_tax_id": "29AAFCB7421K1Z3",
+  "supplier_address": "3rd Floor, Prestige Tech Park, Marathahalli, Bengaluru, Karnataka 560103",
+  "supplier_email": "accounts@brightlineinfotech.in",
+  "bank_account_name": "Brightline Infotech Pvt Ltd",
+  "bank_account_number": "50200077889900",
+  "bank_code": "HDFC0002211",
+  "bank_name": "HDFC Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "BLI/24-25/0502",
+  "invoice_date": "2024-12-06",
+  "due_date": "2025-01-05",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "PO-2024-0159",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Business laptop (14 inch)",
+      "quantity": "4",
+      "unit": "pcs",
+      "unit_price": "52,000.00",
+      "line_amount": "2,08,000.00",
+      "tax_rate_pct": "18"
+    },
+    {
+      "description": "USB-C docking station",
+      "quantity": "4",
+      "unit": "pcs",
+      "unit_price": "6,500.00",
+      "line_amount": "26,000.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "2,34,000.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "21,060.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "21,060.00"
+    }
+  ],
+  "total": "2,76,120.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice # BLI/24-25/0502"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Date 06/12/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Due 05/01/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable value 2,34,000.00"
+    },
+    {
+      "field": "total",
+      "text": "Total (INR) 2,76,120.00"
+    },
+    {
+      "field": "po_reference_text",
+      "text": "Order Ref. PO-2024-0159"
+    }
+  ]
+}

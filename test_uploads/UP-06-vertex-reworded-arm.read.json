@@ -1,0 +1,74 @@
+{
+  "supplier_name": "Vertex Workplace Solutions Pvt Ltd",
+  "supplier_tax_id": "29AAHCV2468N1Z4",
+  "supplier_address": "27, Bannerghatta Road, JP Nagar, Bengaluru, Karnataka 560078",
+  "supplier_email": "accounts@vertexworkplace.in",
+  "bank_account_name": "Vertex Workplace Solutions Pvt Ltd",
+  "bank_account_number": "50200066554433",
+  "bank_code": "HDFC0003344",
+  "bank_name": "HDFC Bank",
+  "buyer_name": "Meridian Retail Pvt Ltd",
+  "buyer_tax_id": "29AAGCM4567H1Z9",
+  "invoice_number": "VWS/24-25/0131",
+  "invoice_date": "2024-12-11",
+  "due_date": "2025-01-10",
+  "currency": "INR",
+  "date_order": "DMY",
+  "decimal_separator": ".",
+  "po_reference_text": "",
+  "prices_include_tax": false,
+  "lines": [
+    {
+      "description": "Wireless headset",
+      "quantity": "6",
+      "unit": "pcs",
+      "unit_price": "3,200.00",
+      "line_amount": "19,200.00",
+      "tax_rate_pct": "18"
+    },
+    {
+      "description": "Single monitor arm with desk clamp",
+      "quantity": "8",
+      "unit": "pcs",
+      "unit_price": "2,450.00",
+      "line_amount": "19,600.00",
+      "tax_rate_pct": "18"
+    }
+  ],
+  "subtotal": "38,800.00",
+  "tax_lines": [
+    {
+      "label": "CGST",
+      "rate_pct": "9",
+      "amount": "3,492.00"
+    },
+    {
+      "label": "SGST",
+      "rate_pct": "9",
+      "amount": "3,492.00"
+    }
+  ],
+  "total": "45,784.00",
+  "sources": [
+    {
+      "field": "invoice_number",
+      "text": "Invoice Number: VWS/24-25/0131"
+    },
+    {
+      "field": "invoice_date",
+      "text": "Dated: 11/12/2024"
+    },
+    {
+      "field": "due_date",
+      "text": "Payment Due: 10/01/2025"
+    },
+    {
+      "field": "subtotal",
+      "text": "Taxable Value 38,800.00"
+    },
+    {
+      "field": "total",
+      "text": "Total Amount Payable (INR) 45,784.00"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+po_number,line_no,description,quantity,unit,unit_price,tax_rate_pct,consumed_qty
+PO-2024-0142,1,Laptop stand (adjustable aluminium),50,pcs,1200.00,18,0
+PO-2024-0143,1,Ergonomic office chair,20,pcs,8500.00,18,0
+PO-2024-0144,1,USB-C docking connector module,300,pcs,150.00,18,0
+PO-2024-0145,1,Freight - Bengaluru to Mumbai (October),1,lot,80000.00,18,0
+PO-2024-0146,1,Freight - Bengaluru to Delhi (October),1,lot,82000.00,18,0
+PO-2024-0147,1,Product brochure (A4 colour),5000,pcs,5.00,18,0
+PO-2024-0148,1,Standing desk (electric),10,pcs,15000.00,18,10
+PO-2024-0149,1,Business cards (box of 100),2000,box,2.50,18,0
+PO-2024-0150,1,Precision bearing 6204-2RS,100,pcs,45.00,0,0
+PO-2024-0151,1,"Monitor arm (dual, gas spring)",40,pcs,2450.00,18,0
+PO-2024-0152,1,Printed tote bag (cotton),200,pcs,250.00,18,0
+PO-2024-0153,1,Wireless keyboard and mouse combo,25,pcs,1800.00,18,0
+PO-2024-0154,1,Torque wrench set 1/2 in.,12,pcs,1249.50,19,0
+PO-2024-0155,1,Oak display shelving unit,8,pcs,412.50,20,0
+PO-2024-0156,1,Ergonomic office chair,30,pcs,8500.00,18,0
+PO-2024-0157,1,"Spiral notebook (A5, ruled)",500,pcs,60.00,12,0
+PO-2024-0158,1,Cable management tray (steel),100,pcs,650.00,18,0
+PO-2024-0159,1,Business laptop (14 inch),10,pcs,52000.00,18,0
+PO-2024-0159,2,USB-C docking station,10,pcs,6500.00,18,0
+PO-2024-0159,3,Monitor (24 inch IPS),20,pcs,11000.00,18,0
+PO-2024-0159,4,Wireless headset,20,pcs,3200.00,18,0
+PO-2024-0160,1,Height-adjustable office desk,15,pcs,9000.00,18,0
+PO-2024-0160,2,Steel filing cabinet (4 drawer),10,pcs,5500.00,18,0
+PO-2024-0161,1,Magnetic whiteboard (4 x 3 ft),20,pcs,2400.00,18,0
+PO-2024-0162,1,Ergonomic mesh task chair,20,pcs,7500.00,18,0
+PO-2024-0162,2,LED desk lamp with dimmer,30,pcs,1800.00,18,0
+PO-2024-0162,3,Acoustic partition panel,12,pcs,6200.00,18,0
+PO-2024-0163,1,Laser printer (A4 mono),6,pcs,18000.00,18,0
+PO-2024-0163,2,Paper shredder (cross-cut),8,pcs,9500.00,18,0
+PO-2024-0163,3,Laminating machine (A3),5,pcs,4200.00,18,0
+PO-2024-0164,1,Water dispenser (hot and cold),4,pcs,14000.00,18,0
+PO-2024-0164,2,Microwave oven (25 litre),6,pcs,8500.00,18,0
+PO-2024-0165,1,Stackable visitor chair,40,pcs,2600.00,18,0
+PO-2024-0165,2,Glass whiteboard (6 x 4 ft),6,pcs,12500.00,18,0
+PO-2024-0165,3,Ergonomic footrest,25,pcs,1400.00,18,0
+PO-2024-0166,1,Stackable visitor chair,60,pcs,2600.00,18,0
+PO-2024-0166,2,Round meeting table (6 seater),4,pcs,32000.00,18,0
+PO-2024-0166,3,Under-desk cable tray,30,pcs,900.00,18,0
+PO-2024-0167,1,Cafeteria chair (polypropylene),40,pcs,2600.00,18,0
+PO-2024-0167,2,"Monitor arm (single, clamp)",20,pcs,2450.00,18,0
+PO-2024-0167,3,Wireless headset,20,pcs,3200.00,18,0
+PO-2024-0168,1,Cafeteria chair (polypropylene),60,pcs,2800.00,18,0
