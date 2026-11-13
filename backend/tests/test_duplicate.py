@@ -3,7 +3,7 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from conftest import extraction
+from conftest import extraction, line
 
 if TYPE_CHECKING:
     from app.adapters import AdapterRegistry
@@ -58,7 +58,20 @@ async def test_different_amount_or_vendor_is_not_a_duplicate(
 ) -> None:
     await register(registry, adapter)
 
-    other_amount = await registry.DuplicateStage.run("V001", extraction("INV-015"), Decimal("18000.00"))
+    fewer = extraction(  # the same item as INV-001, 20 of them instead of 30: a near miss, not a duplicate
+        "INV-001",
+        invoice_number="ACM/24-25/0203",
+        invoice_date="2024-11-12",
+        due_date="2024-12-12",
+        lines=[line(quantity="20", line_amount="24,000.00")],
+        subtotal="24,000.00",
+        tax_lines=[
+            {"label": "CGST", "rate_pct": "9", "amount": "2,160.00"},
+            {"label": "SGST", "rate_pct": "9", "amount": "2,160.00"},
+        ],
+        total="28,320.00",
+    )
+    other_amount = await registry.DuplicateStage.run("V001", fewer, Decimal("24000.00"))
     other_vendor = await registry.DuplicateStage.run("V002", extraction("INV-001"), TAXABLE)
 
     assert other_amount.verdict == "none"

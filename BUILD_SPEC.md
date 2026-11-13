@@ -508,8 +508,11 @@ Each PDF prints the bank details from `vendors.csv`, except INV-019 (another acc
 (none printed). The samples are ordered by the stage that decides them (intake, validation, vendor, bank,
 duplicate, PO, Jev, amounts); INV-001 runs first because later samples re-use its invoice and its PO. Some invoices
 carry more than one defect so that one sample proves more than one rule (INV-004, INV-008, INV-043). The vendor
-master and the PO register are deliberately larger than the sample set: V007, V008, V009 and V013 and their POs
-have no sample now, and the rules they covered are exercised by `backend/tests/`. INV-003 is password-protected
+master and the PO register are deliberately larger than the sample set. V007, V008 and V009 have no sample now;
+the reading rules they showed (month-first dates, decimal commas, gross prices) are still tested in
+`backend/tests/test_extraction.py` and `test_rules.py`. V013 and PO-2024-0167 / 0168 are unused seed data: the rule
+they showed, Jev picking between two POs that order the same item at different prices, has neither a sample nor a
+test since the scenario was cut. INV-003 is password-protected
 (generated with that password, so it is refused at intake). Each PDF has a sibling `INV-NNN.read.json`: the `InvoiceRead` a careful reader would
 produce, with amounts as printed strings (for example `"36,000.00"`). It must validate against `InvoiceRead`.
 

@@ -148,3 +148,47 @@ async def test_created_master_data_is_used_by_the_pipeline(client: httpx.AsyncCl
     assert (detail["outcome"], detail["vendor_id"], detail["po"]) == ("approved", "V014", "PO-2024-0169")
     assert {"VENDOR_IDENTIFIED", "PO_MATCHED", "PARTIAL_DELIVERY", "NO_DUPLICATE"} <= codes(detail)
     assert await balance(client, "PO-2024-0169") == "36750.00"
+
+
+async def test_an_amount_just_over_the_po_balance_is_inside_tolerance(client: httpx.AsyncClient) -> None:
+    """The demo set no longer has a sample for this, so the whole path is typed in instead."""
+    zenith = typed(
+        supplier_name="Zenith Traders LLP",
+        supplier_tax_id="27AAEFZ5678K1Z3",
+        bank_account_name="Zenith Traders LLP",
+        bank_account_number="918020045678901",
+        bank_code="UTIB0000456",
+        bank_name="Axis Bank",
+        invoice_number="ZT-2024-1131",
+        invoice_date="2024-11-18",
+        due_date="2025-01-02",
+        po_reference_text="PO-2024-0151",
+        lines=[
+            {
+                "description": "Monitor arm (dual, gas spring)",
+                "quantity": "40",
+                "unit": "pcs",
+                "unit_price": "2,475.00",
+                "line_amount": "99,000.00",
+                "tax_rate_pct": "18",
+            }
+        ],
+        subtotal="99,000.00",
+        tax_lines=[{"label": "IGST", "rate_pct": "18", "amount": "17,820.00"}],
+        total="1,16,820.00",
+    )
+
+    detail = await run(client, zenith)
+    reasons = {reason["code"]: reason for reason in detail["reasons"]}
+
+    assert detail["outcome"] == "approved"
+    assert not {"UNIT_PRICE_MISMATCH", "QTY_EXCEEDS_ORDERED", "OVER_CONSUMPTION"} & codes(detail)
+    assert reasons["AMOUNT_WITHIN_TOLERANCE"]["text"] == (
+        "The taxable value 99,000.00 exceeds the 98,000.00 left on PO-2024-0151 by 1,000.00, within the 1,960.00 "
+        "tolerance."
+    )
+    assert detail["summary"] == (
+        "Approved; PO-2024-0151 is now fully invoiced, 1,000.00 over its balance and within the 1,960.00 tolerance."
+    )
+    assert reasons["PO_FULLY_INVOICED"]["data"]["remaining_after"] == "-1000.00"
+    assert await balance(client, "PO-2024-0151") == "-1000.00"

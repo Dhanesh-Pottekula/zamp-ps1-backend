@@ -326,6 +326,7 @@ def test_gross_price_lines_are_checked_against_the_total(rules: StageRules) -> N
         "INV-002",  # prices include tax and no taxable value is printed; the rest is typed in as a UK invoice
         currency="GBP",
         total="3,960.00",
+        tax_lines=[{"label": "VAT", "rate_pct": "20", "amount": "660.00"}],
         lines=[line(quantity="8", unit_price="495.00", line_amount="3,960.00", tax_rate_pct="20")],
     )
     result = rules.validation.run(gross, TODAY)
